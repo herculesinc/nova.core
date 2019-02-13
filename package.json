@@ -1,0 +1,28 @@
+{
+  "name": "@nova/core",
+  "version": "0.1.0",
+  "description": "Core interfaces and classes for Nova framework",
+  "keywords": [
+    "nova",
+    "api",
+    "framework"
+  ],
+  "main": "index.js",
+  "typings": "nova-core.d.ts",
+  "license": "MIT",
+  "author": {
+    "name": "Credo360, Inc.",
+    "email": "developers@credo360.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/herculesinc/nova.core.git"
+  },
+  "engines": {
+    "node": "10.15.x"
+  },
+  "devDependencies": {
+    "del": "3.0.x",
+    "gulp": "4.0.x"
+  }
+}
