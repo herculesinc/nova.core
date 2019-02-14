@@ -1,7 +1,7 @@
 // IMPORTS
 // =================================================================================================
 import {
-    Context, Executable, OperationConfig, OperationServices, 
+    Context, Executable, OperationConfig, OperationServices,
     Logger, Dao, Cache, Notifier, Dispatcher, Action, Notice, Task
 } from '@nova/core';
 
@@ -37,7 +37,7 @@ export class Operation implements Context, Executable {
 
     private readonly tasks      : Task[];
     private readonly notices    : Map<string,Notice[]>;
-    
+
     private readonly deferred   : ActionEnvelope[];
 
     // CONSTRUCTOR
@@ -89,7 +89,7 @@ export class Operation implements Context, Executable {
             this.notifier.send(target, notice);
             return;
         }
-        
+
         const notices = this.notices.get(target) || [];
         for (let i = 0; i < notices.length; i++) {
             if (!notice[i]) continue;
@@ -107,12 +107,12 @@ export class Operation implements Context, Executable {
         if (!task) throw new TypeError('Cannot dispatch task: task is undefined');
         if (!this.dispatcher) throw new Error('Cannot dispatch task: dispatcher not initialized');
         if (this.isClosed) throw new Error('Cannot dispatch task: operation already closed');
-        
+
         if (immediate) {
             this.dispatcher.send(task);
             return;
         }
-        
+
         for (let i = 0; i < this.tasks.length; i++) {
             if (!this.tasks[i]) continue;
             let merged = task.merge(this.tasks[i]);
@@ -178,7 +178,7 @@ export class Operation implements Context, Executable {
             if (this.dao && this.dao.isActive) {
                 await this.dao.close('rollback');
             }
-            
+
             // mark operation as closed and re-throw the error
             this.state = OperationState.closed;
             throw error;
