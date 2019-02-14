@@ -216,6 +216,7 @@ function validateLogger(logger) {
         throw new TypeError('Logger is invalid');
     if (typeof logger.error !== 'function')
         throw new TypeError('Logger is invalid');
+    return logger;
 }
 function validateServices(services) {
     if (services.dao) {

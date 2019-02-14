@@ -261,6 +261,7 @@ function validateLogger(logger?: Logger): Logger {
     if (typeof logger.info !== 'function') throw new TypeError('Logger is invalid');
     if (typeof logger.warn !== 'function') throw new TypeError('Logger is invalid');
     if (typeof logger.error !== 'function') throw new TypeError('Logger is invalid');
+    return logger;
 }
 
 function validateServices(services: OperationServices) {

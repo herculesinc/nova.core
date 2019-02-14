@@ -42,7 +42,7 @@ declare module "@nova/core" {
     // --------------------------------------------------------------------------------------------
     export interface Action<V=any, T=any> {
         (this: Operation, inputs: V): Promise<T>;
-        merge?  : (i1: V, i2: V) => V;
+        merge?: (i1: V, i2: V) => V;
     }
 
     export const actions: {
