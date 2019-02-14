@@ -1,13 +1,13 @@
 // IMPORTS
 // =================================================================================================
 import {
-    Operation as IOperation, OperationConfig, OperationServices, 
+    Context, Executable, OperationConfig, OperationServices, 
     Logger, Dao, Cache, Notifier, Dispatcher, Action, Notice, Task
 } from '@nova/core';
 
 // INTERFACES
 // =================================================================================================
-interface ActionEnvelope<V,T> {
+interface ActionEnvelope<V=any,T=any> {
     action: Action<V,T>;
     inputs: V;
 }
@@ -18,7 +18,7 @@ const enum OperationState {
 
 // CLASS DEFINITION
 // =================================================================================================
-export class Operation implements IOperation {
+export class Operation implements Context, Executable {
 
     readonly id                 : string;
     readonly name               : string;
@@ -30,6 +30,7 @@ export class Operation implements IOperation {
     readonly cache?             : Cache;
 
     private state               : OperationState;
+    private readonly actions    : Action[];
 
     private readonly notifier?  : Notifier;
     private readonly dispatcher?: Dispatcher;
@@ -37,7 +38,7 @@ export class Operation implements IOperation {
     private readonly tasks      : Task[];
     private readonly notices    : Map<string,Notice[]>;
     
-    private readonly deferred   : ActionEnvelope<any,any>[];
+    private readonly deferred   : ActionEnvelope[];
 
     // CONSTRUCTOR
     // --------------------------------------------------------------------------------------------
@@ -48,6 +49,7 @@ export class Operation implements IOperation {
         this.name = config.name;
         this.origin = config.origin;
         this.timestamp = Date.now();
+        this.actions = config.actions;
 
         this.log = validateLogger(logger);
 
@@ -148,7 +150,7 @@ export class Operation implements IOperation {
 
     // EXECUTOR
     // --------------------------------------------------------------------------------------------
-    async execute(actions: Action<any,any>[], inputs: any): Promise<any> {
+    async execute(inputs: any): Promise<any> {
 
         // validate and update the state
         if (this.state === OperationState.closed) throw new Error('Cannot execute operation: operation already closed');
@@ -158,7 +160,7 @@ export class Operation implements IOperation {
         let result = inputs;
         try {
             // execute the actions
-            for (let action of actions) {
+            for (let action of this.actions) {
                 let start = Date.now();
                 this.log.debug(`Executing ${action.name} action`);
                 result = await action.call(this, result);
@@ -244,14 +246,15 @@ function NotNull(element: any): boolean {
 function validateConfig(config: OperationConfig) {
     if (!config) throw new TypeError('Operation config is undefined');
 
-    if (typeof config.id !== 'string') throw new TypeError('Operation ID must be a string');
-    if (config.id === '') throw new TypeError('Operation ID cannot be an empty string');
+    if (typeof config.id !== 'string' || config.id === '') throw new TypeError('Operation ID is missing or invalid');
+    if (typeof config.name !== 'string' || config.name === '') throw new TypeError('Operation name is missing or invalid');
+    if (typeof config.origin !== 'string' || config.origin === '') throw new TypeError('Operation origin is missing or invalid');
 
-    if (typeof config.name !== 'string') throw new TypeError('Operation name must be a string');
-    if (config.name === '') throw new TypeError('Operation name cannot be an empty string');
-
-    if (typeof config.origin !== 'string') throw new TypeError('Operation origin must be a string');
-    if (config.origin === '') throw new TypeError('Operation origin cannot be an empty string');
+    if (!Array.isArray(config.actions)) throw new TypeError('Operation actions are missing or invalid');
+    for (let action of config.actions) {
+        if (typeof action !== 'function') throw new TypeError('Operation action is not a function');
+        // TODO: make sure action is not an arrow function
+    }
 }
 
 function validateLogger(logger?: Logger): Logger {

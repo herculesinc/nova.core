@@ -11,6 +11,7 @@ class Operation {
         this.name = config.name;
         this.origin = config.origin;
         this.timestamp = Date.now();
+        this.actions = config.actions;
         this.log = validateLogger(logger);
         if (services) {
             validateServices(services);
@@ -105,7 +106,7 @@ class Operation {
     }
     // EXECUTOR
     // --------------------------------------------------------------------------------------------
-    async execute(actions, inputs) {
+    async execute(inputs) {
         // validate and update the state
         if (this.state === 4 /* closed */)
             throw new Error('Cannot execute operation: operation already closed');
@@ -115,7 +116,7 @@ class Operation {
         let result = inputs;
         try {
             // execute the actions
-            for (let action of actions) {
+            for (let action of this.actions) {
                 let start = Date.now();
                 this.log.debug(`Executing ${action.name} action`);
                 result = await action.call(this, result);
@@ -192,18 +193,19 @@ function NotNull(element) {
 function validateConfig(config) {
     if (!config)
         throw new TypeError('Operation config is undefined');
-    if (typeof config.id !== 'string')
-        throw new TypeError('Operation ID must be a string');
-    if (config.id === '')
-        throw new TypeError('Operation ID cannot be an empty string');
-    if (typeof config.name !== 'string')
-        throw new TypeError('Operation name must be a string');
-    if (config.name === '')
-        throw new TypeError('Operation name cannot be an empty string');
-    if (typeof config.origin !== 'string')
-        throw new TypeError('Operation origin must be a string');
-    if (config.origin === '')
-        throw new TypeError('Operation origin cannot be an empty string');
+    if (typeof config.id !== 'string' || config.id === '')
+        throw new TypeError('Operation ID is missing or invalid');
+    if (typeof config.name !== 'string' || config.name === '')
+        throw new TypeError('Operation name is missing or invalid');
+    if (typeof config.origin !== 'string' || config.origin === '')
+        throw new TypeError('Operation origin is missing or invalid');
+    if (!Array.isArray(config.actions))
+        throw new TypeError('Operation actions are missing or invalid');
+    for (let action of config.actions) {
+        if (typeof action !== 'function')
+            throw new TypeError('Operation action is not a function');
+        // TODO: make sure action is not an arrow function
+    }
 }
 function validateLogger(logger) {
     if (!logger)

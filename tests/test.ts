@@ -1,6 +1,6 @@
 // IMPORTS
 // =================================================================================================
-import { Operation, OperationConfig, OperationServices } from '@nova/core';
+import { Context, OperationConfig, OperationServices } from '@nova/core';
 import * as nova from '../index';
 import { MockCache } from './mocks';
 
@@ -9,14 +9,15 @@ import { MockCache } from './mocks';
 const opConfig: OperationConfig = {
     id      : 'testId',
     name    : 'testName',
-    origin  : 'testOrigin'
+    origin  : 'testOrigin',
+    actions : [testAction]
 };
 
 const opServices: OperationServices = {
     cache   : new MockCache()
 };
 
-async function testAction(this: Operation, inputs: any) {
+async function testAction(this: Context, inputs: any) {
     this.cache.get('test key');
     this.defer(nova.actions.clearCache, ['test key1']);
     this.defer(nova.actions.clearCache, ['test key2']);
@@ -28,8 +29,8 @@ async function testAction(this: Operation, inputs: any) {
 (async function runTest() {
     const inputs = { test: 'testing' };
 
-    const operation = nova.create(opConfig, opServices);
-    const result = await nova.execute(operation, [testAction], inputs);
+    const operation = new nova.Operation(opConfig, opServices);
+    const result = await operation.execute(inputs);
     
     console.log('-'.repeat(100));
     console.log(JSON.stringify(result));

@@ -2,7 +2,12 @@ declare module "@nova/core" {
 
     // OPERATION
     // --------------------------------------------------------------------------------------------
-    export interface Operation {
+    export interface Operation extends Executable, Context {
+        new(config: OperationConfig, services?: OperationServices, logger?: Logger): Operation;
+    }
+    export const Operation: Operation;
+
+    export interface Context {
         readonly id         : string;
         readonly name       : string;
         readonly origin     : string;
@@ -22,10 +27,15 @@ declare module "@nova/core" {
         dispatch(task: Task, immediate?: boolean): void;
     }
 
+    export interface Executable {
+        execute(inputs: any): Promise<any>;
+    }
+
     export interface OperationConfig {
         readonly id         : string;
         readonly name       : string;
         readonly origin     : string;
+        readonly actions    : Action[];
     }
 
     export interface OperationServices {
@@ -35,13 +45,10 @@ declare module "@nova/core" {
         readonly dispatcher?: Dispatcher;
     }
 
-    export function create(config: OperationConfig, services?: OperationServices, logger?: Logger): Operation;
-    export function execute(operation: Operation, actions: Action<any,any>[], inputs: any): Promise<any>;
-
     // ACTIONS
     // --------------------------------------------------------------------------------------------
     export interface Action<V=any, T=any> {
-        (this: Operation, inputs: V): Promise<T>;
+        (this: Context, inputs: V): Promise<T>;
         merge?: (i1: V, i2: V) => V;
     }
 
