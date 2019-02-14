@@ -24,13 +24,11 @@
   "devDependencies": {
     "@types/mocha": "5.2.x",
     "chai": "3.5.x",
-    "chai-as-promised": "^7.1.1",
+    "chai-as-promised": "7.1.x",
     "del": "3.0.x",
+    "gulp": "4.0.x",
     "gulp-mocha": "6.0.x",
     "mocha": "5.2.x",
     "sinon": "1.17.x"
-  },
-  "dependencies": {
-    "gulp": "4.0.x"
   }
 }

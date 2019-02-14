@@ -56,5 +56,5 @@ const build = gulp.series(clean, compile, copyFiles);
 // ================================================================================================
 exports.build = build;
 exports.publish = gulp.series(build, publish);
-exports.tests = gulp.series(build, runTests);
+exports.test = gulp.series(build, runTests);
 exports.default = build;

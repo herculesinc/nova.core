@@ -25,7 +25,7 @@ const defLogger: Logger = {
 
 const expect = chai.expect;
 
-describe('NOVA.CORE -> \'Opration\' tests;', () => {
+describe('NOVA.CORE -> \'Operation\' tests;', () => {
     describe('Creating an \'Operation\';', () => {
         it('should create new operation', () => {
             const operation = new nova.Operation(config);
@@ -217,7 +217,7 @@ describe('NOVA.CORE -> \'Opration\' tests;', () => {
 
     // doa section
 
-    // notifier section (notify fn -> imidiate(sent once, else after execute end) right merge
+    // notifier section (notify fn -> immediate(sent once, else after execute end) right merge
     // dispatcher section as notifier
     // deferred action section
 });
