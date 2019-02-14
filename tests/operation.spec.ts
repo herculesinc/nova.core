@@ -35,6 +35,10 @@ describe('NOVA.CORE -> \'Opration\' tests;', () => {
             expect(operation.name).to.equal(config.name);
             expect(operation.origin).to.equal(config.origin);
             expect(operation.timestamp).to.be.at.most(Date.now());
+
+            expect(operation.log).to.equal(console);
+            expect(operation.dao).to.be.undefined;
+            expect(operation.cache).to.be.undefined;
         });
         it('should return an error', function () {
             expect(() => new nova.Operation({...config, id: ''})).to.throw(TypeError, 'Operation ID is missing or invalid');
@@ -123,6 +127,8 @@ describe('NOVA.CORE -> \'Opration\' tests;', () => {
                 expect(executeSpy.firstCall.returnValue).to.eventually.equal(result);
             });
         });
+
+        // notify, and dispatch should return error
     });
 
     describe('Executing operation actions', () => {
@@ -182,17 +188,21 @@ describe('NOVA.CORE -> \'Opration\' tests;', () => {
         beforeEach(async () => {
             cache = new MockCache();
 
-            async function action(this: Context, inputs: any) {
+            async function testAction(this: Context, inputs: any) {
                 this.cache.get(cKey);
             }
 
             cacheSpy  = sinon.spy(cache, 'get');
+            actionSpy = sinon.spy(testAction);
 
-            operation = new nova.Operation({...config, actions:[action]}, { cache }, defLogger);
+            operation = new nova.Operation({...config, actions:[actionSpy]}, { cache }, defLogger);
 
             await operation.execute(opInput);
         });
 
+        it('action context should have cache service', () => {
+            expect(actionSpy.firstCall.thisValue.cache).to.equal(cache);
+        });
         it('should be executed once', () => {
             expect((cacheSpy as any).called).to.be.true;
             expect((cacheSpy as any).callCount).to.equal(1);
@@ -204,4 +214,10 @@ describe('NOVA.CORE -> \'Opration\' tests;', () => {
             expect(cacheSpy.firstCall.calledWithExactly(cKey)).to.be.true;
         });
     });
+
+    // doa section
+
+    // notifier section (notify fn -> imidiate(sent once, else after execute end) right merge
+    // dispatcher section as notifier
+    // deferred action section
 });
