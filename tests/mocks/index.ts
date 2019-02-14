@@ -1,0 +1,1 @@
+export { MockCache } from './cache';

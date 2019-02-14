@@ -10,10 +10,12 @@ declare module "@nova/core" {
 
         readonly log        : Logger;
         readonly dao?       : Dao;
-        readonly cache?     : CacheClient;
+        readonly cache?     : Cache;
 
         readonly isSealed   : boolean;
+        readonly isClosed   : boolean;
 
+        run<V,T>(action: Action<V,T>, inputs: V): Promise<T>;
         defer<V,T>(action: Action<V,T>, inputs: V): void;
 
         notify(target: string, notice: Notice, immediate?: boolean): void;
@@ -24,56 +26,31 @@ declare module "@nova/core" {
         readonly id         : string;
         readonly name       : string;
         readonly origin     : string;
-        readonly logger     : Logger;
     }
 
     export interface OperationServices {
         readonly dao?       : Dao;
-        readonly cache?     : CacheClient;
-        readonly notifier?  : NotifierClient;
-        readonly dispatcher?: DispatcherClient;
+        readonly cache?     : Cache;
+        readonly notifier?  : Notifier;
+        readonly dispatcher?: Dispatcher;
     }
 
-    // ACTION
+    export function create(config: OperationConfig, services?: OperationServices, logger?: Logger): Operation;
+    export function execute(operation: Operation, actions: Action<any,any>[], inputs: any): Promise<any>;
+
+    // ACTIONS
     // --------------------------------------------------------------------------------------------
-    export interface Action<V,T> {
-        (inputs: V, context: Operation): Promise<T>;
+    export interface Action<V=any, T=any> {
+        (this: Operation, inputs: V): Promise<T>;
         merge?  : (i1: V, i2: V) => V;
     }
 
-    // EXECUTOR
-    // --------------------------------------------------------------------------------------------
-    export interface ExecutorConfig {
-        readonly database?      : Database;
-        readonly cache?         : CacheFactory;
-        readonly dispatcher?    : DispatcherFactory;
-        readonly notifier?      : NotifierFactory;
-    }
-
-    export class Executor {
-
-        constructor(config: ExecutorConfig);
-
-        createContext(config: OperationConfig): Promise<Operation>;
-        closeContext(context: Operation, error?: Error): Promise<void>;
-
-        execute(actions: Action<any,any>[], inputs: any, context: Operation): Promise<any>;
-    }
-
-    export interface OperationOptions {
-        readonly dao?       : DaoOptions;
-    }
+    export const actions: {
+        clearCache  : Action<Set<string>, any>;
+    };
 
     // DATABASE
     // --------------------------------------------------------------------------------------------
-    export interface Database {
-        getClient(options: DaoOptions, logger: Logger): Dao;
-    }
-
-    export interface DaoOptions {
-        readonly    : boolean;
-    }
-
     export interface Dao {
         readonly isActive       : boolean;
         readonly isReadOnly     : boolean;
@@ -83,32 +60,19 @@ declare module "@nova/core" {
 
     // CACHE
     // --------------------------------------------------------------------------------------------
-    export interface CacheFactory {
-        getClient(logger: Logger): CacheClient;
-    }
-
-    export interface CacheClient {
-        get(key: string)    : Promise<any>;
-        get(keys: string[]) : Promise<any[]>;
+    export interface Cache {
+        get(key: string): Promise<any>;
+        get(keys: string[]): Promise<any[]>;
 
         set(key: string, value: any, expires?: number): void;
 
-        clear(key: string)      : Promise<any>;
-        clear(keys: string[])   : Promise<any>;
-
-        invalidate(key: string)     : void;
-        isInvalidated(key: string)  : Boolean;
-
-        flush(): Promise<any>;
+        clear(key: string): void;
+        clear(keys: string[]): void;
     }
 
     // DISPATCHER
     // --------------------------------------------------------------------------------------------
-    export interface DispatcherFactory {
-        getClient(logger: Logger): DispatcherClient;
-    }
-
-    export interface DispatcherClient {
+    export interface Dispatcher {
         send(task: Task)    : Promise<any>;
         send(tasks: Task[]) : Promise<any>;
     }
@@ -119,16 +83,12 @@ declare module "@nova/core" {
         readonly delay?     : number;
         readonly ttl?       : number;
 
-        merge(task: Task): Task;
+        merge(task: Task)   : Task;
     }
 
     // NOTIFIER
     // --------------------------------------------------------------------------------------------
-    export interface NotifierFactory {
-        getClient(logger: Logger) : NotifierClient;
-    }
-
-    export interface NotifierClient {
+    export interface Notifier {
         send(target: string, notice: Notice)    : Promise<any>;
         send(target: string, notices: Notice[]) : Promise<any>;
     }
@@ -142,22 +102,10 @@ declare module "@nova/core" {
 
     // LOGGER
     // --------------------------------------------------------------------------------------------
-    export interface TraceSource {
-        readonly name   : string;
-        readonly type   : string;
-    }
-
-    export interface TraceCommand {
-        readonly name   : string;
-        readonly text   : string;
-    }
-
     export interface Logger {        
         debug(message: string) : void;
         info(message: string)  : void;
         warn(message: string)  : void;
-
-        error(error: Error)     : void;
-        trace(source: TraceSource, command: TraceCommand, duration: number, success: boolean): void;
+        error(error: Error)    : void;
     }
 }
