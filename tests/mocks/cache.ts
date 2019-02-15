@@ -13,9 +13,11 @@ export class MockCache implements Cache {
 
     set(key: string, value: any, expires?: number) {
         // console.log(`Cache::clear{${key}, ${value}, ${expires}}`);
+        return Promise.resolve();
     }
 
     clear(keyOrKeys: string | string[]) {
         // console.log(`Cache::clear{${keyOrKeys}}`);
+        return Promise.resolve();
     }
 }

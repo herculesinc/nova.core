@@ -1,6 +1,6 @@
 // IMPORTS
 // =================================================================================================
-import {Logger} from '@nova/core';
+import { Logger, TraceSource, TraceCommand } from '@nova/core';
 
 // CLASS DEFINITION
 // =================================================================================================
@@ -9,4 +9,5 @@ export class MockLogger implements Logger {
     info(message: string) {}
     warn(message: string) {}
     error(error: Error) {}
+    trace(source: TraceSource, command: string | TraceCommand, duration: number, success: boolean) {}
 }

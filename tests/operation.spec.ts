@@ -4,8 +4,8 @@ import * as chaiAsPromised from 'chai-as-promised';
 
 chai.use(chaiAsPromised);
 
-import {OperationConfig, Logger, Action, Cache, Dao, Notifier, Dispatcher, Context, OperationServices} from '@nova/core';
-import {MockCache, MockLogger, MockDao, MockNotice, MockNotifier, MockDispatcher, MockTask} from './mocks';
+import { OperationConfig, Cache, Dao, Notifier, Dispatcher, Context } from '@nova/core';
+import { MockCache, MockLogger, MockDao, MockNotice, MockNotifier, MockDispatcher, MockTask } from './mocks';
 import * as nova from '../index';
 
 const config: OperationConfig = {
@@ -28,7 +28,7 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
             expect(operation.origin).to.equal(config.origin);
             expect(operation.timestamp).to.be.at.most(Date.now());
 
-            expect(operation.log).to.equal(console);
+            expect(operation.log).to.equal(nova.logger);
             expect(operation.dao).to.be.undefined;
             expect(operation.cache).to.be.undefined;
         });

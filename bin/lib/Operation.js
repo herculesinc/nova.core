@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const Logger_1 = require("./Logger");
 // CLASS DEFINITION
 // =================================================================================================
 class Operation {
@@ -209,7 +210,7 @@ function validateConfig(config) {
 }
 function validateLogger(logger) {
     if (!logger)
-        return console;
+        return Logger_1.logger;
     if (typeof logger.debug !== 'function')
         throw new TypeError('Logger is invalid');
     if (typeof logger.info !== 'function')

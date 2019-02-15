@@ -68,13 +68,13 @@ declare module "@nova/core" {
     // CACHE
     // --------------------------------------------------------------------------------------------
     export interface Cache {
-        get(key: string): Promise<any>;
-        get(keys: string[]): Promise<any[]>;
+        get(key: string)    : Promise<any>;
+        get(keys: string[]) : Promise<any[]>;
 
-        set(key: string, value: any, expires?: number): void;
+        set(key: string, value: any, expires?: number): Promise<any>;
 
-        clear(key: string): void;
-        clear(keys: string[]): void;
+        clear(key: string)      : Promise<void>;
+        clear(keys: string[])   : Promise<void>;
     }
 
     // DISPATCHER
@@ -109,10 +109,54 @@ declare module "@nova/core" {
 
     // LOGGER
     // --------------------------------------------------------------------------------------------
+    export interface TraceSource {
+        readonly name   : string;
+        readonly type   : string;
+    }
+
+    export interface TraceCommand {
+        readonly name   : string;
+        readonly text?  : string;
+    }
+
     export interface Logger {        
-        debug(message: string) : void;
-        info(message: string)  : void;
-        warn(message: string)  : void;
-        error(error: Error)    : void;
+        debug(message: string)  : void;
+        info(message: string)   : void;
+        warn(message: string)   : void;
+        error(error: Error)     : void;
+
+        trace(source: TraceSource, command: string, duration: number, success: boolean): void;
+        trace(source: TraceSource, command: TraceCommand, duration: number, success: boolean): void;
+    }
+
+    export const logger: Logger;
+
+    // EXCEPTION
+    // --------------------------------------------------------------------------------------------
+    export interface ExceptionOptions {
+        name?       : string;
+        status?     : number;
+        message?    : string;
+        code?       : number;
+        cause?      : Error;
+        stackStart? : Function;
+    }
+
+    export class Exception extends Error {
+
+        readonly name           : string;
+        readonly status         : number;
+        readonly code?          : number;
+        readonly cause?         : Error;
+    
+        headers?                : { [header: string]: string };
+
+        readonly isClientError  : boolean;
+        readonly isServerError  : boolean;
+
+        constructor(options: ExceptionOptions);
+        constructor(message: string, status?: number);
+
+        toJSON(): any;
     }
 }

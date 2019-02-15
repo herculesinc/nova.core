@@ -1,9 +1,9 @@
 // IMPORTS
 // =================================================================================================
 import {
-    Context, Executable, OperationConfig, OperationServices,
-    Logger, Dao, Cache, Notifier, Dispatcher, Action, Notice, Task
+    Context, Executable, OperationConfig, OperationServices, Logger, Dao, Cache, Notifier, Dispatcher, Action, Notice, Task
 } from '@nova/core';
+import { logger as consoleLogger } from './Logger';
 
 // INTERFACES
 // =================================================================================================
@@ -258,7 +258,7 @@ function validateConfig(config: OperationConfig) {
 }
 
 function validateLogger(logger?: Logger): Logger {
-    if (!logger) return console;
+    if (!logger) return consoleLogger;
 
     if (typeof logger.debug !== 'function') throw new TypeError('Logger is invalid');
     if (typeof logger.info !== 'function') throw new TypeError('Logger is invalid');
