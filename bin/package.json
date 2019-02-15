@@ -22,6 +22,7 @@
     "node": "10.15.x"
   },
   "devDependencies": {
+    "@types/node": "10.12.x",
     "@types/mocha": "5.2.x",
     "chai": "3.5.x",
     "chai-as-promised": "7.1.x",
