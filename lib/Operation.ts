@@ -92,7 +92,7 @@ export class Operation implements Context, Executable {
 
         const notices = this.notices.get(target) || [];
         for (let i = 0; i < notices.length; i++) {
-            if (!notice[i]) continue;
+            if (!notice[i]) continue; // todo ???
             let merged = notice.merge(notices[i]);
             if (merged) {
                 notices[i] = null;

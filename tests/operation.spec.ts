@@ -4,23 +4,15 @@ import * as chaiAsPromised from 'chai-as-promised';
 
 chai.use(chaiAsPromised);
 
-import {OperationConfig, Logger, Action, Cache, Context, OperationServices} from '@nova/core';
+import {OperationConfig, Logger, Action, Cache, Dao, Notifier, Dispatcher, Context, OperationServices} from '@nova/core';
+import {MockCache, MockLogger, MockDao, MockNotice, MockNotifier, MockDispatcher, MockTask} from './mocks';
 import * as nova from '../index';
-import {MockCache} from './mocks';
 
 const config: OperationConfig = {
     id      : 'id',
     name    : 'name',
     origin  : 'origin',
     actions : []
-};
-
-const aFunc = () => {};
-const defLogger: Logger = {
-    debug: aFunc,
-    error: aFunc,
-    info: aFunc,
-    warn: aFunc
 };
 
 const expect = chai.expect;
@@ -72,14 +64,14 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
         });
 
         it('should be done without exceptions', async () => {
-            operation = new nova.Operation(config, null, defLogger);
+            operation = new nova.Operation(config, null, new MockLogger());
 
             await operation.execute(undefined);
         });
 
         describe('without actions', () => {
             beforeEach(async () => {
-                operation = new nova.Operation(config, null, defLogger);
+                operation = new nova.Operation(config, null, new MockLogger());
 
                 executeSpy = sinon.spy(operation, 'execute');
 
@@ -105,7 +97,7 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
         describe('with action', () => {
             beforeEach(async () => {
                 action  = sinon.stub().returns(result);
-                operation = new nova.Operation({...config, actions: [action]}, null, defLogger);
+                operation = new nova.Operation({...config, actions: [action]}, null, new MockLogger());
 
                 executeSpy = sinon.spy(operation, 'execute');
 
@@ -128,7 +120,45 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
             });
         });
 
-        // notify, and dispatch should return error
+        describe('call the notify method without notifier', () => {
+            beforeEach(async () => {
+                async function testAction(this: Context, inputs: any) {
+                    this.notify('target', new MockNotice());
+                }
+
+                action  = sinon.spy(testAction);
+
+                operation = new nova.Operation({...config, actions: [action]}, null, new MockLogger());
+            });
+
+            it('should throw an exception', async () => {
+                try {
+                    await operation.execute(inputs);
+                } catch (err) {
+                    expect(err.message).to.equal('Cannot register notice: notifier not initialized');
+                }
+            });
+        });
+
+        describe('call the dispatch method without dispatcher', () => {
+            beforeEach(async () => {
+                async function testAction(this: Context, inputs: any) {
+                    this.dispatch(new MockTask());
+                }
+
+                action  = sinon.spy(testAction);
+
+                operation = new nova.Operation({...config, actions: [action]}, null, new MockLogger());
+            });
+
+            it('should throw an exception', async () => {
+                try {
+                    await operation.execute(inputs);
+                } catch (err) {
+                    expect(err.message).to.equal('Cannot dispatch task: dispatcher not initialized');
+                }
+            });
+        });
     });
 
     describe('Executing operation actions', () => {
@@ -143,7 +173,7 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
             firstAction  = sinon.stub().returns(fResult);
             secondAction = sinon.stub().returns(sResult);
 
-            operation = new nova.Operation({...config, actions:[firstAction, secondAction, firstAction]}, null, defLogger);
+            operation = new nova.Operation({...config, actions:[firstAction, secondAction, firstAction]}, null, new MockLogger());
 
             await operation.execute(inputs);
         });
@@ -195,11 +225,13 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
             cacheSpy  = sinon.spy(cache, 'get');
             actionSpy = sinon.spy(testAction);
 
-            operation = new nova.Operation({...config, actions:[actionSpy]}, { cache }, defLogger);
+            operation = new nova.Operation({...config, actions:[actionSpy]}, { cache }, new MockLogger());
 
             await operation.execute(opInput);
         });
-
+        it('operation should have cache service', () => {
+            expect(operation.cache).to.equal(cache);
+        });
         it('action context should have cache service', () => {
             expect(actionSpy.firstCall.thisValue.cache).to.equal(cache);
         });
@@ -215,9 +247,257 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
         });
     });
 
-    // doa section
+    describe('Executing an operation with \'Dao\' service', () => {
+        let operation: nova.Operation;
+        let dao: Dao;
+        let actionSpy, daoSpy;
 
-    // notifier section (notify fn -> immediate(sent once, else after execute end) right merge
-    // dispatcher section as notifier
-    // deferred action section
+        describe('when action is performed without error', () => {
+            beforeEach(async () => {
+                dao = new MockDao();
+
+                daoSpy  = sinon.spy(dao, 'close');
+                actionSpy = sinon.stub().returns(null);
+
+                operation = new nova.Operation({...config, actions:[actionSpy]}, { dao }, new MockLogger());
+
+                await operation.execute(undefined);
+            });
+
+            it('operation should have dao service', () => {
+                expect(operation.dao).to.equal(dao);
+            });
+            it('action context should have dao service', () => {
+                expect(actionSpy.firstCall.thisValue.dao).to.equal(dao);
+            });
+            it('should be executed once', () => {
+                expect((daoSpy as any).called).to.be.true;
+                expect((daoSpy as any).callCount).to.equal(1);
+            });
+            it('should be executed with right context', () => {
+                expect(daoSpy.firstCall.thisValue).to.equal(dao);
+            });
+            it('should be executed with right arguments', () => {
+                expect(daoSpy.firstCall.calledWithExactly('commit')).to.be.true;
+            });
+        });
+
+        describe('when action throw exception', () => {
+            const exception = 'exception';
+
+            beforeEach(async () => {
+                dao = new MockDao();
+
+                daoSpy  = sinon.spy(dao, 'close');
+                actionSpy = sinon.stub().throws(new Error(exception));
+
+                operation = new nova.Operation({...config, actions:[actionSpy]}, { dao }, new MockLogger());
+
+                try {
+                    await operation.execute(undefined);
+                } catch (err) {
+                    expect(err.message).to.equal(exception);
+                }
+            });
+
+            it('operation should have dao service', () => {
+                expect(operation.dao).to.equal(dao);
+            });
+            it('action context should have dao service', () => {
+                expect(actionSpy.firstCall.thisValue.dao).to.equal(dao);
+            });
+            it('should be executed once', () => {
+                expect((daoSpy as any).called).to.be.true;
+                expect((daoSpy as any).callCount).to.equal(1);
+            });
+            it('should be executed with right context', () => {
+                expect(daoSpy.firstCall.thisValue).to.equal(dao);
+            });
+            it('should be executed with right arguments', () => {
+                expect(daoSpy.firstCall.calledWithExactly('rollback')).to.be.true;
+            });
+        });
+    });
+
+    describe('Executing an operation with \'Notifier\' service', () => {
+        let operation: nova.Operation;
+        let notifier: Notifier;
+        let actionSpy, sendSpy, flushSpy;
+
+        describe('should be send immediate', () => {
+            beforeEach(async () => {
+                notifier = new MockNotifier();
+
+                sendSpy = sinon.spy(notifier, 'send');
+
+                async function testAction(this: Context, inputs: any) {
+                    this.notify('test', new MockNotice(), true);
+                }
+
+                actionSpy = sinon.spy(testAction);
+
+                operation = new nova.Operation({...config, actions:[actionSpy]}, { notifier }, new MockLogger());
+
+                flushSpy = sinon.spy(operation, 'flushNotices');
+
+                await operation.execute(undefined);
+            });
+
+            it('operation should have notifier service', () => {
+                expect((operation as any).notifier).to.equal(notifier);
+            });
+            it('notifier send method should be executed once', () => {
+                expect((sendSpy as any).called).to.be.true;
+                expect((sendSpy as any).callCount).to.equal(1);
+            });
+            it('notifier send method should be executed after action', () => {
+                expect(sendSpy.firstCall.calledAfter(actionSpy.firstCall)).to.be.true;
+            });
+            it('notifier send method should be executed before flushNotices method', () => {
+                expect((flushSpy as any).called).to.be.true;
+                expect(sendSpy.firstCall.calledBefore(flushSpy.firstCall)).to.be.true;
+            });
+        });
+
+        describe('should be send deferred', () => {
+            beforeEach(async () => {
+                notifier = new MockNotifier();
+
+                sendSpy = sinon.spy(notifier, 'send');
+
+                async function testAction(this: Context, inputs: any) {
+                    this.notify('test', new MockNotice(), false);
+                }
+
+                actionSpy = sinon.spy(testAction);
+
+                operation = new nova.Operation({...config, actions:[actionSpy]}, { notifier }, new MockLogger());
+
+                flushSpy = sinon.spy(operation, 'flushNotices');
+
+                await operation.execute(undefined);
+            });
+
+            it('notifier send method should be executed once', () => {
+                expect((sendSpy as any).called).to.be.true;
+                expect((sendSpy as any).callCount).to.equal(1);
+            });
+            it('notifier send method should be executed after action', () => {
+                expect(sendSpy.firstCall.calledAfter(actionSpy.firstCall)).to.be.true;
+            });
+            it('notifier send method should be executed after flushNotices method', () => {
+                expect((flushSpy as any).called).to.be.true;
+                expect(sendSpy.firstCall.calledAfter(flushSpy.firstCall)).to.be.true;
+            });
+        });
+    });
+
+    describe('Executing an operation with \'Dispatcher\' service', () => {
+        let operation: nova.Operation;
+        let dispatcher: Dispatcher;
+        let actionSpy, sendSpy, flushSpy;
+
+        describe('should be send immediate', () => {
+            beforeEach(async () => {
+                dispatcher = new MockDispatcher();
+
+                sendSpy = sinon.spy(dispatcher, 'send');
+
+                async function testAction(this: Context, inputs: any) {
+                    this.dispatch(new MockTask(), true);
+                }
+
+                actionSpy = sinon.spy(testAction);
+
+                operation = new nova.Operation({...config, actions:[actionSpy]}, { dispatcher }, new MockLogger());
+
+                flushSpy = sinon.spy(operation, 'flushTasks');
+
+                await operation.execute(undefined);
+            });
+
+            it('operation should have dispatcher service', () => {
+                expect((operation as any).dispatcher).to.equal(dispatcher);
+            });
+            it('dispatcher send method should be executed once', () => {
+                expect((sendSpy as any).called).to.be.true;
+                expect((sendSpy as any).callCount).to.equal(1);
+            });
+            it('dispatcher send method should be executed after action', () => {
+                expect(sendSpy.firstCall.calledAfter(actionSpy.firstCall)).to.be.true;
+            });
+            it('dispatcher send method should be executed before flushTasks method', () => {
+                expect((flushSpy as any).called).to.be.true;
+                expect(sendSpy.firstCall.calledBefore(flushSpy.firstCall)).to.be.true;
+            });
+        });
+
+        describe('should be send deferred', () => {
+            beforeEach(async () => {
+                dispatcher = new MockDispatcher();
+
+                sendSpy = sinon.spy(dispatcher, 'send');
+
+                async function testAction(this: Context, inputs: any) {
+                    this.dispatch(new MockTask(), false);
+                }
+
+                actionSpy = sinon.spy(testAction);
+
+                operation = new nova.Operation({...config, actions:[actionSpy]}, { dispatcher }, new MockLogger());
+
+                flushSpy = sinon.spy(operation, 'flushTasks');
+
+                await operation.execute(undefined);
+            });
+
+            it('dispatcher send method should be executed once', () => {
+                expect((sendSpy as any).called).to.be.true;
+                expect((sendSpy as any).callCount).to.equal(1);
+            });
+            it('dispatcher send method should be executed after action', () => {
+                expect(sendSpy.firstCall.calledAfter(actionSpy.firstCall)).to.be.true;
+            });
+            it('dispatcher send method should be executed after flushTasks method', () => {
+                expect((flushSpy as any).called).to.be.true;
+                expect(sendSpy.firstCall.calledAfter(flushSpy.firstCall)).to.be.true;
+            });
+        });
+    });
+
+    describe('Executing an operation with deferred actions', () => {
+        let operation: nova.Operation;
+        let deferSpy, executeDeferSpy;
+
+        const dInputs = 'inputs';
+
+        beforeEach(async () => {
+            deferSpy = sinon.stub();
+
+            async function action(this: Context, inputs: any) {
+                this.defer(deferSpy, dInputs);
+            }
+
+            operation = new nova.Operation({...config, actions:[action]}, null, new MockLogger());
+
+            executeDeferSpy = sinon.spy(operation, 'executeDeferredActions');
+
+            await operation.execute(undefined);
+        });
+
+        it('deferred action should be executed once', () => {
+            expect((deferSpy as any).called).to.be.true;
+            expect((deferSpy as any).callCount).to.equal(1);
+        });
+        it('deferred action should be executed with right context', () => {
+            expect(deferSpy.firstCall.thisValue).to.equal(operation);
+        });
+        it('deferred action should be executed with right arguments', () => {
+            expect(deferSpy.firstCall.calledWithExactly(dInputs)).to.be.true;
+        });
+        it('deferred action should be executed after executeDeferredActions action', () => {
+            expect((executeDeferSpy as any).called).to.be.true;
+            expect(deferSpy.firstCall.calledAfter(executeDeferSpy.firstCall)).to.be.true;
+        });
+    });
 });
