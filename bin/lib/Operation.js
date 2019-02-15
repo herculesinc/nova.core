@@ -48,8 +48,8 @@ class Operation {
         }
         const notices = this.notices.get(target) || [];
         for (let i = 0; i < notices.length; i++) {
-            if (!notice[i])
-                continue; // todo ???
+            if (!notices[i])
+                continue;
             let merged = notice.merge(notices[i]);
             if (merged) {
                 notices[i] = null;

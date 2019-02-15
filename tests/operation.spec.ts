@@ -32,6 +32,14 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
             expect(operation.dao).to.be.undefined;
             expect(operation.cache).to.be.undefined;
         });
+        it('should create new operation with custom logger', () => {
+            const logger = new MockLogger();
+            const operation = new nova.Operation(config, null, logger);
+
+            expect(operation.log).to.equal(logger);
+            expect(operation.dao).to.be.undefined;
+            expect(operation.cache).to.be.undefined;
+        });
         it('should return an error', function () {
             expect(() => new nova.Operation({...config, id: ''})).to.throw(TypeError, 'Operation ID is missing or invalid');
         });
@@ -471,33 +479,67 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
 
         const dInputs = 'inputs';
 
-        beforeEach(async () => {
-            deferSpy = sinon.stub();
+        describe('Executing deferred actions inside actions', () => {
+            beforeEach(async () => {
+                deferSpy = sinon.stub();
 
-            async function action(this: Context, inputs: any) {
-                this.defer(deferSpy, dInputs);
-            }
+                async function action(this: Context, inputs: any) {
+                    this.defer(deferSpy, dInputs);
+                }
 
-            operation = new nova.Operation({...config, actions:[action]}, null, new MockLogger());
+                operation = new nova.Operation({...config, actions:[action]}, null, new MockLogger());
 
-            executeDeferSpy = sinon.spy(operation, 'executeDeferredActions');
+                executeDeferSpy = sinon.spy(operation, 'executeDeferredActions');
 
-            await operation.execute(undefined);
+                await operation.execute(undefined);
+            });
+
+            it('deferred action should be executed once', () => {
+                expect((deferSpy as any).called).to.be.true;
+                expect((deferSpy as any).callCount).to.equal(1);
+            });
+            it('deferred action should be executed with right context', () => {
+                expect(deferSpy.firstCall.thisValue).to.equal(operation);
+            });
+            it('deferred action should be executed with right arguments', () => {
+                expect(deferSpy.firstCall.calledWithExactly(dInputs)).to.be.true;
+            });
+            it('deferred action should be executed after executeDeferredActions action', () => {
+                expect((executeDeferSpy as any).called).to.be.true;
+                expect(deferSpy.firstCall.calledAfter(executeDeferSpy.firstCall)).to.be.true;
+            });
         });
 
-        it('deferred action should be executed once', () => {
-            expect((deferSpy as any).called).to.be.true;
-            expect((deferSpy as any).callCount).to.equal(1);
-        });
-        it('deferred action should be executed with right context', () => {
-            expect(deferSpy.firstCall.thisValue).to.equal(operation);
-        });
-        it('deferred action should be executed with right arguments', () => {
-            expect(deferSpy.firstCall.calledWithExactly(dInputs)).to.be.true;
-        });
-        it('deferred action should be executed after executeDeferredActions action', () => {
-            expect((executeDeferSpy as any).called).to.be.true;
-            expect(deferSpy.firstCall.calledAfter(executeDeferSpy.firstCall)).to.be.true;
+        describe('Executing deferred actions inside other deferred actions', () => {
+            let error;
+
+            beforeEach(async () => {
+                deferSpy = sinon.stub();
+
+                async function dAction(this: Context, inputs: any) {
+                    this.defer(deferSpy, inputs);
+                }
+                async function action(this: Context, inputs: any) {
+                    this.defer(dAction, inputs);
+                }
+
+                operation = new nova.Operation({...config, actions:[action]}, null, new MockLogger());
+
+                executeDeferSpy = sinon.spy(operation, 'executeDeferredActions');
+
+                try {
+                    await operation.execute(undefined);
+                } catch (err) {
+                    error = err.message;
+                }
+            });
+
+            it('should return an error', () => {
+                expect(error).to.equal('Cannot defer an action: operation already sealed');
+            });
+            it('second deferred action should not be called', () => {
+                expect((deferSpy as any).called).to.be.false;
+            });
         });
     });
 });
