@@ -40,29 +40,29 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
             expect(operation.dao).to.be.undefined;
             expect(operation.cache).to.be.undefined;
         });
-        it('should return an error', function () {
+        it('should return an error if operation ID is missing', function () {
             expect(() => new nova.Operation({...config, id: ''})).to.throw(TypeError, 'Operation ID is missing or invalid');
         });
-        it('should return an error', function () {
+        it('should return an error if operation name is missing', function () {
             expect(() => new nova.Operation({...config, name: ''})).to.throw(TypeError, 'Operation name is missing or invalid');
         });
-        it('should return an error', function () {
+        it('should return an error if operation origin is missing', function () {
             expect(() => new nova.Operation({...config, origin: ''})).to.throw(TypeError, 'Operation origin is missing or invalid');
         });
-        it('should return an error', function () {
+        it('should return an error if operation actions are missing', function () {
             expect(() => new nova.Operation({...config, actions: undefined})).to.throw(TypeError, 'Operation actions are missing or invalid');
         });
-        it('should return an error', function () {
+        it('should return an error if operation action is not a function', function () {
             expect(() => new nova.Operation({...config, actions: ['string' as any]})).to.throw(TypeError, 'Operation action is not a function');
         });
-        it('should return an error', function () {
+        it('should return an error operation action is an arrow function', function () {
             expect(() => new nova.Operation({...config, actions: [(() => {}) as any]})).to.throw(TypeError, 'Operation action cannot be an arrow function');
         });
     });
 
     describe('Executing an operation via \'Operation.execute()\'', () => {
         let operation: nova.Operation;
-        let action, executeSpy;
+        let action: any, executeSpy: any;
 
         const inputs = 'inputs';
         const result = 'result';
@@ -90,13 +90,13 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
                 expect((executeSpy as any).called).to.be.true;
                 expect((executeSpy as any).callCount).to.equal(1);
             });
-            it('should be executed with right context', () => {
+            it('should be executed with correct context', () => {
                 expect(executeSpy.firstCall.thisValue).to.equal(operation);
             });
-            it('should be executed with right arguments', () => {
+            it('should be executed with correct arguments', () => {
                 expect(executeSpy.firstCall.calledWithExactly(inputs)).to.be.true;
             });
-            it('should return right inputs', () => {
+            it('should return correct result', () => {
                 expect(executeSpy.firstCall.returnValue).to.be.a('promise');
                 expect(executeSpy.firstCall.returnValue).to.eventually.equal(inputs);
             });
@@ -116,19 +116,19 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
                 expect((executeSpy as any).called).to.be.true;
                 expect((executeSpy as any).callCount).to.equal(1);
             });
-            it('should be executed with right context', () => {
+            it('should be executed with correct context', () => {
                 expect(executeSpy.firstCall.thisValue).to.equal(operation);
             });
-            it('should be executed with right arguments', () => {
+            it('should be executed with correct arguments', () => {
                 expect(executeSpy.firstCall.calledWithExactly(inputs)).to.be.true;
             });
-            it('should return right inputs', () => {
+            it('should return correct result', () => {
                 expect(executeSpy.firstCall.returnValue).to.be.a('promise');
                 expect(executeSpy.firstCall.returnValue).to.eventually.equal(result);
             });
         });
 
-        describe('call the notify method without notifier', () => {
+        describe('call notify() method without notifier', () => {
             beforeEach(async () => {
                 async function testAction(this: Context, inputs: any) {
                     this.notify('target', new MockNotice());
@@ -148,7 +148,7 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
             });
         });
 
-        describe('call the dispatch method without dispatcher', () => {
+        describe('call dispatch() method without dispatcher', () => {
             beforeEach(async () => {
                 async function testAction(this: Context, inputs: any) {
                     this.dispatch(new MockTask());
@@ -171,7 +171,7 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
 
     describe('Executing operation actions', () => {
         let operation: nova.Operation;
-        let firstAction, secondAction;
+        let firstAction: any, secondAction: any;
 
         const inputs = 'inputs';
         const fResult = 1;
@@ -191,11 +191,11 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
                 expect((firstAction as any).called).to.be.true;
                 expect((firstAction as any).callCount).to.equal(2);
             });
-            it('should be executed with right context', () => {
+            it('should be executed with correct context', () => {
                 expect(firstAction.firstCall.thisValue).to.equal(operation);
                 expect(firstAction.secondCall.thisValue).to.equal(operation);
             });
-            it('should be executed with right arguments', () => {
+            it('should be executed with correct arguments', () => {
                 expect(firstAction.firstCall.calledWithExactly(inputs)).to.be.true;
                 expect(firstAction.secondCall.calledWithExactly(sResult)).to.be.true;
             });
@@ -206,19 +206,19 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
                 expect((secondAction as any).called).to.be.true;
                 expect((secondAction as any).callCount).to.equal(1);
             });
-            it('should be executed with right context', () => {
+            it('should be executed with correct context', () => {
                 expect(secondAction.firstCall.thisValue).to.equal(operation);
             });
-            it('should be executed with right arguments', () => {
+            it('should be executed with correct arguments', () => {
                 expect(secondAction.firstCall.calledWithExactly(fResult)).to.be.true;
             });
         });
     });
 
-    describe('Executing an operation with \'Cash\' service', () => {
+    describe('Executing an operation with \'Cache\' service', () => {
         let operation: nova.Operation;
         let cache: Cache;
-        let actionSpy, cacheSpy;
+        let actionSpy: any, cacheSpy: any;
 
         const opInput = 'opInput';
         const cKey    = 'cKey';
@@ -247,10 +247,10 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
             expect((cacheSpy as any).called).to.be.true;
             expect((cacheSpy as any).callCount).to.equal(1);
         });
-        it('should be executed with right context', () => {
+        it('should be executed with correct context', () => {
             expect(cacheSpy.firstCall.thisValue).to.equal(cache);
         });
-        it('should be executed with right arguments', () => {
+        it('should be executed with correct arguments', () => {
             expect(cacheSpy.firstCall.calledWithExactly(cKey)).to.be.true;
         });
     });
@@ -258,7 +258,7 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
     describe('Executing an operation with \'Dao\' service', () => {
         let operation: nova.Operation;
         let dao: Dao;
-        let actionSpy, daoSpy;
+        let actionSpy: any, daoSpy: any;
 
         describe('when action is performed without error', () => {
             beforeEach(async () => {
@@ -278,19 +278,16 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
             it('action context should have dao service', () => {
                 expect(actionSpy.firstCall.thisValue.dao).to.equal(dao);
             });
-            it('should be executed once', () => {
+            it('dao close() method should be called once', () => {
                 expect((daoSpy as any).called).to.be.true;
                 expect((daoSpy as any).callCount).to.equal(1);
             });
-            it('should be executed with right context', () => {
-                expect(daoSpy.firstCall.thisValue).to.equal(dao);
-            });
-            it('should be executed with right arguments', () => {
+            it('dao close() method should be called with \'commit\' parameter', () => {
                 expect(daoSpy.firstCall.calledWithExactly('commit')).to.be.true;
             });
         });
 
-        describe('when action throw exception', () => {
+        describe('when action throws exception', () => {
             const exception = 'exception';
 
             beforeEach(async () => {
@@ -314,14 +311,11 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
             it('action context should have dao service', () => {
                 expect(actionSpy.firstCall.thisValue.dao).to.equal(dao);
             });
-            it('should be executed once', () => {
+            it('dao close() method should be executed once', () => {
                 expect((daoSpy as any).called).to.be.true;
                 expect((daoSpy as any).callCount).to.equal(1);
             });
-            it('should be executed with right context', () => {
-                expect(daoSpy.firstCall.thisValue).to.equal(dao);
-            });
-            it('should be executed with right arguments', () => {
+            it('dao close() method should be called with \'rollback\' parameter', () => {
                 expect(daoSpy.firstCall.calledWithExactly('rollback')).to.be.true;
             });
         });
@@ -330,9 +324,9 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
     describe('Executing an operation with \'Notifier\' service', () => {
         let operation: nova.Operation;
         let notifier: Notifier;
-        let actionSpy, sendSpy, flushSpy;
+        let actionSpy: any, sendSpy: any, flushSpy: any;
 
-        describe('should be send immediate', () => {
+        describe('sending immediate notice', () => {
             beforeEach(async () => {
                 notifier = new MockNotifier();
 
@@ -354,20 +348,21 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
             it('operation should have notifier service', () => {
                 expect((operation as any).notifier).to.equal(notifier);
             });
-            it('notifier send method should be executed once', () => {
+            it('notifier send() method should be executed once', () => {
                 expect((sendSpy as any).called).to.be.true;
                 expect((sendSpy as any).callCount).to.equal(1);
             });
-            it('notifier send method should be executed after action', () => {
+            it('notifier send() method should be executed after action', () => {
                 expect(sendSpy.firstCall.calledAfter(actionSpy.firstCall)).to.be.true;
             });
-            it('notifier send method should be executed before flushNotices method', () => {
+            it('notifier send() method should be executed before flushNotices method', () => {
+                // TODO: can this be changed to before action completes?
                 expect((flushSpy as any).called).to.be.true;
                 expect(sendSpy.firstCall.calledBefore(flushSpy.firstCall)).to.be.true;
             });
         });
 
-        describe('should be send deferred', () => {
+        describe('sending deferred notice', () => {
             beforeEach(async () => {
                 notifier = new MockNotifier();
 
@@ -386,14 +381,15 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
                 await operation.execute(undefined);
             });
 
-            it('notifier send method should be executed once', () => {
+            it('notifier send() method should be executed once', () => {
                 expect((sendSpy as any).called).to.be.true;
                 expect((sendSpy as any).callCount).to.equal(1);
             });
-            it('notifier send method should be executed after action', () => {
+            it('notifier send() method should be executed after action', () => {
                 expect(sendSpy.firstCall.calledAfter(actionSpy.firstCall)).to.be.true;
             });
-            it('notifier send method should be executed after flushNotices method', () => {
+            it('notifier send() method should be executed after flushNotices method', () => {
+                // TODO: can this be changed to after action completes?
                 expect((flushSpy as any).called).to.be.true;
                 expect(sendSpy.firstCall.calledAfter(flushSpy.firstCall)).to.be.true;
             });
@@ -403,9 +399,9 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
     describe('Executing an operation with \'Dispatcher\' service', () => {
         let operation: nova.Operation;
         let dispatcher: Dispatcher;
-        let actionSpy, sendSpy, flushSpy;
+        let actionSpy: any, sendSpy: any, flushSpy: any;
 
-        describe('should be send immediate', () => {
+        describe('sending immediate task', () => {
             beforeEach(async () => {
                 dispatcher = new MockDispatcher();
 
@@ -427,20 +423,21 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
             it('operation should have dispatcher service', () => {
                 expect((operation as any).dispatcher).to.equal(dispatcher);
             });
-            it('dispatcher send method should be executed once', () => {
+            it('dispatcher send() method should be executed once', () => {
                 expect((sendSpy as any).called).to.be.true;
                 expect((sendSpy as any).callCount).to.equal(1);
             });
-            it('dispatcher send method should be executed after action', () => {
+            it('dispatcher send() method should be executed after action', () => {
                 expect(sendSpy.firstCall.calledAfter(actionSpy.firstCall)).to.be.true;
             });
-            it('dispatcher send method should be executed before flushTasks method', () => {
+            it('dispatcher send() method should be executed before flushTasks method', () => {
+                // TODO: can this be changed to before action completes?
                 expect((flushSpy as any).called).to.be.true;
                 expect(sendSpy.firstCall.calledBefore(flushSpy.firstCall)).to.be.true;
             });
         });
 
-        describe('should be send deferred', () => {
+        describe('sending deferred task', () => {
             beforeEach(async () => {
                 dispatcher = new MockDispatcher();
 
@@ -459,14 +456,15 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
                 await operation.execute(undefined);
             });
 
-            it('dispatcher send method should be executed once', () => {
+            it('dispatcher send() method should be executed once', () => {
                 expect((sendSpy as any).called).to.be.true;
                 expect((sendSpy as any).callCount).to.equal(1);
             });
-            it('dispatcher send method should be executed after action', () => {
+            it('dispatcher send() method should be executed after action', () => {
                 expect(sendSpy.firstCall.calledAfter(actionSpy.firstCall)).to.be.true;
             });
-            it('dispatcher send method should be executed after flushTasks method', () => {
+            it('dispatcher send() method should be executed after flushTasks method', () => {
+                // TODO: can this be changed to after action completes?
                 expect((flushSpy as any).called).to.be.true;
                 expect(sendSpy.firstCall.calledAfter(flushSpy.firstCall)).to.be.true;
             });
@@ -475,7 +473,7 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
 
     describe('Executing an operation with deferred actions', () => {
         let operation: nova.Operation;
-        let deferSpy, executeDeferSpy;
+        let deferSpy: any, executeDeferSpy: any;
 
         const dInputs = 'inputs';
 
@@ -498,13 +496,14 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
                 expect((deferSpy as any).called).to.be.true;
                 expect((deferSpy as any).callCount).to.equal(1);
             });
-            it('deferred action should be executed with right context', () => {
+            it('deferred action should be executed with correct context', () => {
                 expect(deferSpy.firstCall.thisValue).to.equal(operation);
             });
-            it('deferred action should be executed with right arguments', () => {
+            it('deferred action should be executed with correct arguments', () => {
                 expect(deferSpy.firstCall.calledWithExactly(dInputs)).to.be.true;
             });
             it('deferred action should be executed after executeDeferredActions action', () => {
+                // TODO: can this be changed to after action completes?
                 expect((executeDeferSpy as any).called).to.be.true;
                 expect(deferSpy.firstCall.calledAfter(executeDeferSpy.firstCall)).to.be.true;
             });
