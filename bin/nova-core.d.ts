@@ -49,7 +49,7 @@ declare module "@nova/core" {
     // --------------------------------------------------------------------------------------------
     export interface Action<V=any, T=any> {
         (this: Context, inputs: V): Promise<T>;
-        merge?: (i1: V, i2: V) => V;
+        merge?: (i1: V, i2: V) => V | undefined;
     }
 
     export const actions: {
@@ -90,7 +90,7 @@ declare module "@nova/core" {
         readonly delay?     : number;
         readonly ttl?       : number;
 
-        merge(task: Task)   : Task;
+        readonly merge?     : (task: Task) => Task | undefined;
     }
 
     // NOTIFIER
@@ -104,7 +104,7 @@ declare module "@nova/core" {
         readonly event      : string;
         readonly payload    : object;
 
-        merge(notice: Notice): Notice;
+        readonly merge?     : (notice: Notice) => Notice | undefined;
     }
 
     // LOGGER

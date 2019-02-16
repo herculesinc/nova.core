@@ -48,13 +48,15 @@ class Operation {
             return;
         }
         const notices = this.notices.get(target) || [];
-        for (let i = 0; i < notices.length; i++) {
-            if (!notices[i])
-                continue;
-            let merged = notice.merge(notices[i]);
-            if (merged) {
-                notices[i] = null;
-                notice = merged;
+        if (notice.merge) {
+            for (let i = 0; i < notices.length; i++) {
+                if (!notices[i])
+                    continue;
+                let merged = notice.merge(notices[i]);
+                if (merged) {
+                    notices[i] = null;
+                    notice = merged;
+                }
             }
         }
         notices.push(notice);
@@ -71,16 +73,18 @@ class Operation {
             this.dispatcher.send(task);
             return;
         }
-        for (let i = 0; i < this.tasks.length; i++) {
-            if (!this.tasks[i])
-                continue;
-            let merged = task.merge(this.tasks[i]);
-            if (merged) {
-                this.tasks[i] = null;
-                task = merged;
+        if (task.merge) {
+            for (let i = 0; i < this.tasks.length; i++) {
+                if (!this.tasks[i])
+                    continue;
+                let merged = task.merge(this.tasks[i]);
+                if (merged) {
+                    this.tasks[i] = null;
+                    task = merged;
+                }
             }
+            this.tasks.push(task);
         }
-        this.tasks.push(task);
     }
     run(action, inputs) {
         return action.call(this, inputs);
