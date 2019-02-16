@@ -6,12 +6,14 @@ import { HttpStatusCode, HttpCodeNames } from './util';
 // BASE EXCEPTION CLASS
 // ================================================================================================
 export class Exception extends Error {
+
     readonly name       : string;
     readonly status     : number;
     readonly code?      : number;
     readonly cause?     : Error;
 
-    headers?   : { [header: string]: string };
+    headers?            : { [header: string]: string; };
+    details?            : any;
 
     // CONSTRUCTORS
     // --------------------------------------------------------------------------------------------
@@ -59,7 +61,8 @@ export class Exception extends Error {
         return {
             name    : this.name,
             code    : this.code,
-            message : this.message
+            message : this.message,
+            details : this.details
         };
     }
 }

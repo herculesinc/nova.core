@@ -149,7 +149,8 @@ declare module "@nova/core" {
         readonly code?          : number;
         readonly cause?         : Error;
     
-        headers?                : { [header: string]: string };
+        headers?                : { [header: string]: string; };
+        details?                : any;
 
         readonly isClientError  : boolean;
         readonly isServerError  : boolean;
