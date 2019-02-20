@@ -1,5 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+// HTTP CODES
+// ================================================================================================
 exports.HttpCodeNames = new Map([
     [200, 'OK'],
     [201, 'Created'],

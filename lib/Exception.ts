@@ -1,7 +1,7 @@
 // IMPORTS
 // ================================================================================================
-import { ExceptionOptions } from '@nova/core';
-import { HttpStatusCode, HttpCodeNames } from './util';
+import { ExceptionOptions, HttpStatusCode } from '@nova/core';
+import { HttpCodeNames } from './util';
 
 // BASE EXCEPTION CLASS
 // ================================================================================================

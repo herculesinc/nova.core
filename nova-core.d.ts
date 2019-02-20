@@ -23,8 +23,11 @@ declare module "@nova/core" {
         run<V,T>(action: Action<V,T>, inputs: V): Promise<T>;
         defer<V,T>(action: Action<V,T>, inputs: V): void;
 
-        notify(target: string, notice: Notice, immediate?: boolean): void;
-        dispatch(task: Task, immediate?: boolean): void;
+        notify(notice: Notice): Promise<void>;
+        notify(notices: Notice[]): Promise<void>;
+
+        dispatch(task: Task): Promise<void>;
+        dispatch(tasks: Task[]): Promise<void>;
     }
 
     export interface Executable {
@@ -53,7 +56,9 @@ declare module "@nova/core" {
     }
 
     export const actions: {
-        clearCache  : Action<Set<string>, any>;
+        clearCache  : Action<string[], any>;
+        dispatch    : Action<Task | Task[], any>;
+        notify      : Action<Notice | Notice[], any>;
     };
 
     // DATABASE
@@ -80,8 +85,7 @@ declare module "@nova/core" {
     // DISPATCHER
     // --------------------------------------------------------------------------------------------
     export interface Dispatcher {
-        send(task: Task)    : Promise<any>;
-        send(tasks: Task[]) : Promise<any>;
+        send(tasks: Task | Task[]) : Promise<any>;
     }
 
     export interface Task {
@@ -96,12 +100,11 @@ declare module "@nova/core" {
     // NOTIFIER
     // --------------------------------------------------------------------------------------------
     export interface Notifier {
-        send(target: string, notice: Notice)    : Promise<any>;
-        send(target: string, notices: Notice[]) : Promise<any>;
+        send(notices: Notice | Notice[]) : Promise<any>;
     }
 
     export interface Notice {
-        readonly event      : string;
+        readonly target     : string;
         readonly payload    : object;
 
         readonly merge?     : (notice: Notice) => Notice | undefined;
@@ -168,7 +171,7 @@ declare module "@nova/core" {
         Created             = 201,
         Accepted            = 202,
         NoContent           = 204,
-        BadRequest          = 400, 
+        BadRequest          = 400,
         Unauthorized        = 401,
         InvalidInputs       = 402,
         Forbidden           = 403,

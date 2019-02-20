@@ -1,6 +1,6 @@
 // IMPORTS
 // =================================================================================================
-import { Action, Operation } from '@nova/core';
+import { Action } from '@nova/core';
 
 // INTERFACES
 // =================================================================================================
@@ -8,7 +8,7 @@ type Inputs = string[];
 
 // ACTION DEFINITION
 // =================================================================================================
-export const clearCache: Action<Inputs,any> = async function clearCache(inputs: string[]) {
+export const clearCache: Action<Inputs,any> = async function clearCache(inputs: Inputs) {
     if (inputs && inputs.length > 0) {
         this.cache.clear(inputs);
     }

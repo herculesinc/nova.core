@@ -21,8 +21,6 @@ class Operation {
             this.notifier = services.notifier;
             this.dispatcher = services.dispatcher;
         }
-        this.tasks = [];
-        this.notices = new Map();
         this.deferred = [];
         this.state = 1 /* initialized */;
     }
@@ -36,55 +34,23 @@ class Operation {
     }
     // PUBLIC METHODS
     // --------------------------------------------------------------------------------------------
-    notify(target, notice, immediate = false) {
-        if (!notice)
+    async notify(noticeOrNotices) {
+        if (!noticeOrNotices)
             throw new TypeError('Cannot register notice: notice is undefined');
         if (!this.notifier)
             throw new Error('Cannot register notice: notifier not initialized');
         if (this.isClosed)
             throw new Error('Cannot register notice: operation already closed');
-        if (immediate) {
-            this.notifier.send(target, notice);
-            return;
-        }
-        const notices = this.notices.get(target) || [];
-        if (notice.merge) {
-            for (let i = 0; i < notices.length; i++) {
-                if (!notices[i])
-                    continue;
-                let merged = notice.merge(notices[i]);
-                if (merged) {
-                    notices[i] = null;
-                    notice = merged;
-                }
-            }
-        }
-        notices.push(notice);
-        this.notices.set(target, notices);
+        await this.notifier.send(noticeOrNotices);
     }
-    dispatch(task, immediate = false) {
-        if (!task)
+    async dispatch(taskOrTasks) {
+        if (!taskOrTasks)
             throw new TypeError('Cannot dispatch task: task is undefined');
         if (!this.dispatcher)
             throw new Error('Cannot dispatch task: dispatcher not initialized');
         if (this.isClosed)
             throw new Error('Cannot dispatch task: operation already closed');
-        if (immediate) {
-            this.dispatcher.send(task);
-            return;
-        }
-        if (task.merge) {
-            for (let i = 0; i < this.tasks.length; i++) {
-                if (!this.tasks[i])
-                    continue;
-                let merged = task.merge(this.tasks[i]);
-                if (merged) {
-                    this.tasks[i] = null;
-                    task = merged;
-                }
-            }
-            this.tasks.push(task);
-        }
+        await this.dispatcher.send(taskOrTasks);
     }
     run(action, inputs) {
         return action.call(this, inputs);
@@ -147,10 +113,6 @@ class Operation {
         this.state = 3 /* sealed */;
         // execute deferred actions
         await this.executeDeferredActions();
-        // send out tasks and notices
-        const taskPromise = this.flushTasks();
-        const noticePromise = this.flushNotices();
-        await Promise.all([taskPromise, noticePromise]);
         // mark operation as closed and return the result
         this.state = 4 /* closed */;
         return result;
@@ -169,24 +131,6 @@ class Operation {
         }
         await Promise.all(deferredActionPromises);
         this.log.debug(`Executed ${deferred.length} deferred actions in ${Date.now() - start} ms`);
-    }
-    flushNotices() {
-        if (!this.notifier || this.notices.size === 0)
-            return Promise.resolve();
-        let promises = [];
-        for (let [target, notices] of this.notices) {
-            promises.push(this.notifier.send(target, notices.filter(NotNull)));
-        }
-        this.notices.clear();
-        return Promise.all(promises);
-    }
-    flushTasks() {
-        if (!this.dispatcher || this.tasks.length === 0)
-            return Promise.resolve();
-        const tasks = this.tasks.filter(NotNull);
-        const promise = this.dispatcher.send(tasks);
-        this.tasks.length = 0;
-        return promise;
     }
 }
 exports.Operation = Operation;

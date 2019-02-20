@@ -1,27 +1,10 @@
+// IMPORTS
+// ================================================================================================
+import { HttpStatusCode } from '@nova/core';
+
 // HTTP CODES
 // ================================================================================================
-export const enum HttpStatusCode {
-    OK                  = 200,
-    Created             = 201,
-    Accepted            = 202,
-    NoContent           = 204,
-    BadRequest          = 400, 
-    Unauthorized        = 401,
-    InvalidInputs       = 402,
-    Forbidden           = 403,
-    NotFound            = 404,
-    NotAllowed          = 405,
-    NotAcceptable       = 406,
-    PayloadTooLarge     = 413,
-    UnsupportedContent  = 415,
-    NotReady            = 425,
-    TooManyRequests     = 429,
-    InternalServerError = 500,
-    NotImplemented      = 501,
-    ServiceUnavailable  = 503
-}
-
-export const HttpCodeNames = new Map([
+export const HttpCodeNames = new Map<HttpStatusCode, string>([
     [ 200, 'OK' ],
     [ 201, 'Created' ],
     [ 202, 'Accepted' ],

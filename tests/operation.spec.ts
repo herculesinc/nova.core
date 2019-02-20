@@ -131,7 +131,7 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
         describe('call notify() method without notifier', () => {
             beforeEach(async () => {
                 async function testAction(this: Context, inputs: any) {
-                    this.notify('target', new MockNotice());
+                    await this.notify(new MockNotice());
                 }
 
                 action  = sinon.spy(testAction);
@@ -151,7 +151,7 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
         describe('call dispatch() method without dispatcher', () => {
             beforeEach(async () => {
                 async function testAction(this: Context, inputs: any) {
-                    this.dispatch(new MockTask());
+                    await this.dispatch(new MockTask());
                 }
 
                 action  = sinon.spy(testAction);
@@ -333,14 +333,12 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
                 sendSpy = sinon.spy(notifier, 'send');
 
                 async function testAction(this: Context, inputs: any) {
-                    this.notify('test', new MockNotice(), true);
+                    this.notify(new MockNotice());
                 }
 
                 actionSpy = sinon.spy(testAction);
 
                 operation = new nova.Operation({...config, actions:[actionSpy]}, { notifier }, new MockLogger());
-
-                flushSpy = sinon.spy(operation, 'flushNotices');
 
                 await operation.execute(undefined);
             });
@@ -354,44 +352,7 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
             });
             it('notifier send() method should be executed after action', () => {
                 expect(sendSpy.firstCall.calledAfter(actionSpy.firstCall)).to.be.true;
-            });
-            it('notifier send() method should be executed before flushNotices method', () => {
-                // TODO: can this be changed to before action completes?
-                expect((flushSpy as any).called).to.be.true;
-                expect(sendSpy.firstCall.calledBefore(flushSpy.firstCall)).to.be.true;
-            });
-        });
-
-        describe('sending deferred notice', () => {
-            beforeEach(async () => {
-                notifier = new MockNotifier();
-
-                sendSpy = sinon.spy(notifier, 'send');
-
-                async function testAction(this: Context, inputs: any) {
-                    this.notify('test', new MockNotice(), false);
-                }
-
-                actionSpy = sinon.spy(testAction);
-
-                operation = new nova.Operation({...config, actions:[actionSpy]}, { notifier }, new MockLogger());
-
-                flushSpy = sinon.spy(operation, 'flushNotices');
-
-                await operation.execute(undefined);
-            });
-
-            it('notifier send() method should be executed once', () => {
-                expect((sendSpy as any).called).to.be.true;
-                expect((sendSpy as any).callCount).to.equal(1);
-            });
-            it('notifier send() method should be executed after action', () => {
-                expect(sendSpy.firstCall.calledAfter(actionSpy.firstCall)).to.be.true;
-            });
-            it('notifier send() method should be executed after flushNotices method', () => {
-                // TODO: can this be changed to after action completes?
-                expect((flushSpy as any).called).to.be.true;
-                expect(sendSpy.firstCall.calledAfter(flushSpy.firstCall)).to.be.true;
+                // TODO: check that the send() method was executed before the action completed
             });
         });
     });
@@ -408,14 +369,12 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
                 sendSpy = sinon.spy(dispatcher, 'send');
 
                 async function testAction(this: Context, inputs: any) {
-                    this.dispatch(new MockTask(), true);
+                    this.dispatch(new MockTask());
                 }
 
                 actionSpy = sinon.spy(testAction);
 
                 operation = new nova.Operation({...config, actions:[actionSpy]}, { dispatcher }, new MockLogger());
-
-                flushSpy = sinon.spy(operation, 'flushTasks');
 
                 await operation.execute(undefined);
             });
@@ -429,44 +388,7 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
             });
             it('dispatcher send() method should be executed after action', () => {
                 expect(sendSpy.firstCall.calledAfter(actionSpy.firstCall)).to.be.true;
-            });
-            it('dispatcher send() method should be executed before flushTasks method', () => {
-                // TODO: can this be changed to before action completes?
-                expect((flushSpy as any).called).to.be.true;
-                expect(sendSpy.firstCall.calledBefore(flushSpy.firstCall)).to.be.true;
-            });
-        });
-
-        describe('sending deferred task', () => {
-            beforeEach(async () => {
-                dispatcher = new MockDispatcher();
-
-                sendSpy = sinon.spy(dispatcher, 'send');
-
-                async function testAction(this: Context, inputs: any) {
-                    this.dispatch(new MockTask(), false);
-                }
-
-                actionSpy = sinon.spy(testAction);
-
-                operation = new nova.Operation({...config, actions:[actionSpy]}, { dispatcher }, new MockLogger());
-
-                flushSpy = sinon.spy(operation, 'flushTasks');
-
-                await operation.execute(undefined);
-            });
-
-            it('dispatcher send() method should be executed once', () => {
-                expect((sendSpy as any).called).to.be.true;
-                expect((sendSpy as any).callCount).to.equal(1);
-            });
-            it('dispatcher send() method should be executed after action', () => {
-                expect(sendSpy.firstCall.calledAfter(actionSpy.firstCall)).to.be.true;
-            });
-            it('dispatcher send() method should be executed after flushTasks method', () => {
-                // TODO: can this be changed to after action completes?
-                expect((flushSpy as any).called).to.be.true;
-                expect(sendSpy.firstCall.calledAfter(flushSpy.firstCall)).to.be.true;
+                // TODO: check that the send() method was executed before the action completed
             });
         });
     });
