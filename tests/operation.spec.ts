@@ -87,8 +87,8 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
             });
 
             it('should be executed once', async () => {
-                expect((executeSpy as any).called).to.be.true;
-                expect((executeSpy as any).callCount).to.equal(1);
+                expect(executeSpy.called).to.be.true;
+                expect(executeSpy.callCount).to.equal(1);
             });
             it('should be executed with correct context', () => {
                 expect(executeSpy.firstCall.thisValue).to.equal(operation);
@@ -113,8 +113,8 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
             });
 
             it('should be executed once', async () => {
-                expect((executeSpy as any).called).to.be.true;
-                expect((executeSpy as any).callCount).to.equal(1);
+                expect(executeSpy.called).to.be.true;
+                expect(executeSpy.callCount).to.equal(1);
             });
             it('should be executed with correct context', () => {
                 expect(executeSpy.firstCall.thisValue).to.equal(operation);
@@ -188,8 +188,8 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
 
         describe('first action', () => {
             it('should be executed twice', () => {
-                expect((firstAction as any).called).to.be.true;
-                expect((firstAction as any).callCount).to.equal(2);
+                expect(firstAction.called).to.be.true;
+                expect(firstAction.callCount).to.equal(2);
             });
             it('should be executed with correct context', () => {
                 expect(firstAction.firstCall.thisValue).to.equal(operation);
@@ -203,8 +203,8 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
 
         describe('second action', () => {
             it('should be executed once', () => {
-                expect((secondAction as any).called).to.be.true;
-                expect((secondAction as any).callCount).to.equal(1);
+                expect(secondAction.called).to.be.true;
+                expect(secondAction.callCount).to.equal(1);
             });
             it('should be executed with correct context', () => {
                 expect(secondAction.firstCall.thisValue).to.equal(operation);
@@ -244,8 +244,8 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
             expect(actionSpy.firstCall.thisValue.cache).to.equal(cache);
         });
         it('should be executed once', () => {
-            expect((cacheSpy as any).called).to.be.true;
-            expect((cacheSpy as any).callCount).to.equal(1);
+            expect(cacheSpy.called).to.be.true;
+            expect(cacheSpy.callCount).to.equal(1);
         });
         it('should be executed with correct context', () => {
             expect(cacheSpy.firstCall.thisValue).to.equal(cache);
@@ -279,8 +279,8 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
                 expect(actionSpy.firstCall.thisValue.dao).to.equal(dao);
             });
             it('dao close() method should be called once', () => {
-                expect((daoSpy as any).called).to.be.true;
-                expect((daoSpy as any).callCount).to.equal(1);
+                expect(daoSpy.called).to.be.true;
+                expect(daoSpy.callCount).to.equal(1);
             });
             it('dao close() method should be called with \'commit\' parameter', () => {
                 expect(daoSpy.firstCall.calledWithExactly('commit')).to.be.true;
@@ -312,8 +312,8 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
                 expect(actionSpy.firstCall.thisValue.dao).to.equal(dao);
             });
             it('dao close() method should be executed once', () => {
-                expect((daoSpy as any).called).to.be.true;
-                expect((daoSpy as any).callCount).to.equal(1);
+                expect(daoSpy.called).to.be.true;
+                expect(daoSpy.callCount).to.equal(1);
             });
             it('dao close() method should be called with \'rollback\' parameter', () => {
                 expect(daoSpy.firstCall.calledWithExactly('rollback')).to.be.true;
@@ -349,8 +349,8 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
                 expect((operation as any).notifier).to.equal(notifier);
             });
             it('notifier send() method should be executed once', () => {
-                expect((sendSpy as any).called).to.be.true;
-                expect((sendSpy as any).callCount).to.equal(1);
+                expect(sendSpy.called).to.be.true;
+                expect(sendSpy.callCount).to.equal(1);
             });
             it('notifier send() method should be executed before the action completed', () => {
                 expect(sendSpy.firstCall.calledAfter(actionSpy.firstCall)).to.be.true;
@@ -387,8 +387,8 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
                 expect((operation as any).dispatcher).to.equal(dispatcher);
             });
             it('dispatcher send() method should be executed once', () => {
-                expect((sendSpy as any).called).to.be.true;
-                expect((sendSpy as any).callCount).to.equal(1);
+                expect(sendSpy.called).to.be.true;
+                expect(sendSpy.callCount).to.equal(1);
             });
             it('dispatcher send() method should be executed before the action completed', () => {
                 expect(sendSpy.firstCall.calledAfter(actionSpy.firstCall)).to.be.true;
@@ -419,8 +419,8 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
             });
 
             it('deferred action should be executed once', () => {
-                expect((deferSpy as any).called).to.be.true;
-                expect((deferSpy as any).callCount).to.equal(1);
+                expect(deferSpy.called).to.be.true;
+                expect(deferSpy.callCount).to.equal(1);
             });
             it('deferred action should be executed with correct context', () => {
                 expect(deferSpy.firstCall.thisValue).to.equal(operation);
@@ -429,7 +429,7 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
                 expect(deferSpy.firstCall.calledWithExactly(dInputs)).to.be.true;
             });
             it('deferred action should be executed after action completed', () => {
-                expect((completedSpy as any).called).to.be.true;
+                expect(completedSpy.called).to.be.true;
                 expect(deferSpy.firstCall.calledAfter(completedSpy.firstCall)).to.be.true;
             });
         });
@@ -460,7 +460,74 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
                 expect(error).to.equal('Cannot defer an action: operation already sealed');
             });
             it('second deferred action should not be called', () => {
-                expect((deferSpy as any).called).to.be.false;
+                expect(deferSpy.called).to.be.false;
+            });
+        });
+
+        describe('Deferring multiple actions when actions can not be merged', () => {
+            let error;
+
+            const oInputs = {inputs: true};
+
+            beforeEach(async () => {
+                deferSpy = sinon.stub();
+
+                async function sAction(this: Context, inputs: any) {
+                    this.defer(deferSpy, inputs);
+                }
+                async function fAction(this: Context, inputs: any) {
+                    this.defer(deferSpy, inputs);
+                }
+
+                operation = new nova.Operation({...config, actions:[sAction, fAction]}, null, new MockLogger());
+
+                await operation.execute(oInputs);
+            });
+
+            it('second deferred action should be called twice', () => {
+                expect(deferSpy.called).to.be.true;
+                expect(deferSpy.callCount).to.equal(2);
+            });
+
+            it('deferred actions should be called with correct arguments', () => {
+                expect(deferSpy.firstCall.calledWithExactly(oInputs)).to.be.true;
+                expect(deferSpy.secondCall.calledWithExactly(undefined)).to.be.true;
+            });
+        });
+
+        describe('Deferring multiple actions when actions can be merged', () => {
+            let error;
+
+            const d1Inputs = {foo: true};
+            const d2Inputs = {foo: false, bar: 'baz'};
+
+            beforeEach(async () => {
+                deferSpy = sinon.stub();
+
+                async function sAction(this: Context, inputs: any) {
+                    this.defer(dAction, d1Inputs);
+                }
+                async function fAction(this: Context, inputs: any) {
+                    this.defer(dAction, d2Inputs);
+                }
+                async function dAction(this: Context, inputs: any) {
+                    deferSpy(inputs);
+                }
+
+                (dAction as any).merge = (i1: any, i2: any): object => ({...i1, ...i2});
+
+                operation = new nova.Operation({...config, actions:[fAction, sAction]}, null, new MockLogger());
+
+                await operation.execute({test: true});
+            });
+
+            it('deferred action should be called once', () => {
+                expect(deferSpy.called).to.be.true;
+                expect(deferSpy.callCount).to.equal(1);
+            });
+
+            it('deferred action should be called with correct arguments', () => {
+                expect(deferSpy.firstCall.calledWithExactly(d2Inputs)).to.be.true;
             });
         });
     });
