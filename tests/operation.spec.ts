@@ -324,16 +324,18 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
     describe('Executing an operation with \'Notifier\' service', () => {
         let operation: nova.Operation;
         let notifier: Notifier;
-        let actionSpy: any, sendSpy: any, flushSpy: any;
+        let actionSpy: any, sendSpy: any, flushSpy: any, completedSpy: any;
 
         describe('sending immediate notice', () => {
             beforeEach(async () => {
                 notifier = new MockNotifier();
 
                 sendSpy = sinon.spy(notifier, 'send');
+                completedSpy = sinon.stub();
 
                 async function testAction(this: Context, inputs: any) {
                     this.notify(new MockNotice());
+                    completedSpy();
                 }
 
                 actionSpy = sinon.spy(testAction);
@@ -350,9 +352,9 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
                 expect((sendSpy as any).called).to.be.true;
                 expect((sendSpy as any).callCount).to.equal(1);
             });
-            it('notifier send() method should be executed after action', () => {
+            it('notifier send() method should be executed before the action completed', () => {
                 expect(sendSpy.firstCall.calledAfter(actionSpy.firstCall)).to.be.true;
-                // TODO: check that the send() method was executed before the action completed
+                expect(sendSpy.firstCall.calledBefore(completedSpy.firstCall)).to.be.true;
             });
         });
     });
@@ -360,16 +362,18 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
     describe('Executing an operation with \'Dispatcher\' service', () => {
         let operation: nova.Operation;
         let dispatcher: Dispatcher;
-        let actionSpy: any, sendSpy: any, flushSpy: any;
+        let actionSpy: any, sendSpy: any, flushSpy: any, completedSpy: any;
 
         describe('sending immediate task', () => {
             beforeEach(async () => {
                 dispatcher = new MockDispatcher();
 
                 sendSpy = sinon.spy(dispatcher, 'send');
+                completedSpy = sinon.stub();
 
                 async function testAction(this: Context, inputs: any) {
                     this.dispatch(new MockTask());
+                    completedSpy();
                 }
 
                 actionSpy = sinon.spy(testAction);
@@ -386,30 +390,30 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
                 expect((sendSpy as any).called).to.be.true;
                 expect((sendSpy as any).callCount).to.equal(1);
             });
-            it('dispatcher send() method should be executed after action', () => {
+            it('dispatcher send() method should be executed before the action completed', () => {
                 expect(sendSpy.firstCall.calledAfter(actionSpy.firstCall)).to.be.true;
-                // TODO: check that the send() method was executed before the action completed
+                expect(sendSpy.firstCall.calledBefore(completedSpy.firstCall)).to.be.true;
             });
         });
     });
 
     describe('Executing an operation with deferred actions', () => {
         let operation: nova.Operation;
-        let deferSpy: any, executeDeferSpy: any;
+        let deferSpy: any, completedSpy: any;
 
         const dInputs = 'inputs';
 
         describe('Executing deferred actions inside actions', () => {
             beforeEach(async () => {
                 deferSpy = sinon.stub();
+                completedSpy = sinon.stub();
 
                 async function action(this: Context, inputs: any) {
                     this.defer(deferSpy, dInputs);
+                    completedSpy();
                 }
 
                 operation = new nova.Operation({...config, actions:[action]}, null, new MockLogger());
-
-                executeDeferSpy = sinon.spy(operation, 'executeDeferredActions');
 
                 await operation.execute(undefined);
             });
@@ -424,10 +428,9 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
             it('deferred action should be executed with correct arguments', () => {
                 expect(deferSpy.firstCall.calledWithExactly(dInputs)).to.be.true;
             });
-            it('deferred action should be executed after executeDeferredActions action', () => {
-                // TODO: can this be changed to after action completes?
-                expect((executeDeferSpy as any).called).to.be.true;
-                expect(deferSpy.firstCall.calledAfter(executeDeferSpy.firstCall)).to.be.true;
+            it('deferred action should be executed after action completed', () => {
+                expect((completedSpy as any).called).to.be.true;
+                expect(deferSpy.firstCall.calledAfter(completedSpy.firstCall)).to.be.true;
             });
         });
 
@@ -445,8 +448,6 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
                 }
 
                 operation = new nova.Operation({...config, actions:[action]}, null, new MockLogger());
-
-                executeDeferSpy = sinon.spy(operation, 'executeDeferredActions');
 
                 try {
                     await operation.execute(undefined);

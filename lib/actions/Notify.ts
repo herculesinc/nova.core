@@ -12,7 +12,7 @@ export const notify: Action<Inputs,any> = async function notify(inputs: Inputs):
     if (inputs) {
         await this.notify(inputs as any);
     }
-}
+};
 
 notify.merge = function(i1: Inputs, i2: Inputs): Inputs {
     if (i1 == i2) return i1;
@@ -23,7 +23,7 @@ notify.merge = function(i1: Inputs, i2: Inputs): Inputs {
     if (!Array.isArray(i2)) {
         i2 = [i2];
     }
-    
+
     for (let n2 of i2) {
         for (let i = 0; i < merged.length; i++) {
             let m = merge(merged[i], n2);
@@ -38,9 +38,9 @@ notify.merge = function(i1: Inputs, i2: Inputs): Inputs {
             merged.push(n2);
         }
     }
-    
+
     return merged;
-}
+};
 
 // HELPER FUNCTIONS
 // =================================================================================================

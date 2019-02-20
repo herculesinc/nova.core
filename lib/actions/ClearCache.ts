@@ -12,7 +12,7 @@ export const clearCache: Action<Inputs,any> = async function clearCache(inputs: 
     if (inputs && inputs.length > 0) {
         this.cache.clear(inputs);
     }
-}
+};
 
 clearCache.merge = function(i1: Inputs, i2: Inputs): Inputs {
     if (i1 == i2) return i1;
@@ -20,4 +20,4 @@ clearCache.merge = function(i1: Inputs, i2: Inputs): Inputs {
     if (!i2) return i1;
 
     return Array.from(new Set([...i1, ...i2]));
-}
+};

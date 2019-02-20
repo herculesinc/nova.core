@@ -12,7 +12,7 @@ export const dispatch: Action<Inputs,any> = async function dispatch(inputs: Inpu
     if (inputs) {
         await this.dispatch(inputs as any);
     }
-}
+};
 
 dispatch.merge = function(i1: Inputs, i2: Inputs): Inputs {
     if (i1 == i2) return i1;
@@ -23,7 +23,7 @@ dispatch.merge = function(i1: Inputs, i2: Inputs): Inputs {
     if (!Array.isArray(i2)) {
         i2 = [i2];
     }
-    
+
     for (let t2 of i2) {
         for (let i = 0; i < merged.length; i++) {
             let m = merge(merged[i], t2);
@@ -38,9 +38,9 @@ dispatch.merge = function(i1: Inputs, i2: Inputs): Inputs {
             merged.push(t2);
         }
     }
-    
+
     return merged;
-}
+};
 
 // HELPER FUNCTIONS
 // =================================================================================================
