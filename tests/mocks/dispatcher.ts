@@ -11,10 +11,21 @@ export class MockDispatcher implements Dispatcher {
 }
 
 export class MockTask implements Task {
-    name = 'task';
-    payload = {foo: 'bar'};
+    readonly name       : string;
+    readonly payload    : object;
+    readonly delay?     : number;
+    readonly ttl?       : number;
+
+    constructor(name: string = 'task', payload?: any) {
+        this.name = name;
+        this.payload = payload;
+    }
 
     merge(notice: Task): Task {
-        return notice;
+        return undefined;
+    }
+
+    toJSON() {
+        return this.name.charAt(0).toUpperCase() + this.name.slice(1);
     }
 }

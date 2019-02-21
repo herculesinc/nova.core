@@ -324,7 +324,7 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
     describe('Executing an operation with \'Notifier\' service', () => {
         let operation: nova.Operation;
         let notifier: Notifier;
-        let actionSpy: any, sendSpy: any, flushSpy: any, completedSpy: any;
+        let actionSpy: any, sendSpy: any, completedSpy: any;
 
         describe('sending immediate notice', () => {
             beforeEach(async () => {

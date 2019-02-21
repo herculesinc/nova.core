@@ -11,10 +11,19 @@ export class MockNotifier implements Notifier {
 }
 
 export class MockNotice implements Notice {
-    target = 'target';
-    payload = { foo: 'bar' };
+    readonly target: string;
+    readonly payload: object;
+
+    constructor(target: string = 'target', payload?: any) {
+        this.target = target;
+        this.payload = payload;
+    }
 
     merge(notice: Notice): Notice {
-        return notice;
+        return undefined;
+    }
+
+    toJSON() {
+        return this.target.charAt(0).toUpperCase() + this.target.slice(1);
     }
 }
