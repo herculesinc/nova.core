@@ -36,16 +36,22 @@ describe('NOVA.CORE -> common actions;', () => {
         describe('action should work correctly in controller;', () => {
             let operation: nova.Operation;
             let cache: Cache;
-            let cacheSpy: any;
+            let clearCacheActionSpy: any;
+            let clearSpy: any;
+            let completedSpy: any;
 
             beforeEach(async () => {
                 cache = new MockCache();
-                cacheSpy = sinon.spy(clearCache);
+                clearCacheActionSpy = sinon.spy(clearCache);
+                completedSpy = sinon.stub();
+                clearSpy = sinon.spy(cache, 'clear');
 
                 async function action(this: Context, inputs: any) {
-                    this.defer(cacheSpy, undefined);
-                    this.defer(cacheSpy, ['a']);
-                    this.defer(cacheSpy, ['a']);
+                    this.defer(clearCacheActionSpy, undefined);
+                    this.defer(clearCacheActionSpy, ['b']);
+                    this.defer(clearCacheActionSpy, ['a']);
+                    this.defer(clearCacheActionSpy, ['a']);
+                    completedSpy();
                 }
 
                 operation = new nova.Operation({...config, actions: [action]}, {cache}, new MockLogger());
@@ -53,16 +59,30 @@ describe('NOVA.CORE -> common actions;', () => {
                 await operation.execute(undefined);
             });
 
-            afterEach(() => {
-                operation = cache = cacheSpy = undefined;
+            describe('clearCache action', () => {
+                it('should be called once', () => {
+                    expect(clearCacheActionSpy.called).to.be.true;
+                    expect(clearCacheActionSpy.callCount).to.equal(1);
+                });
+                it('should be called with correct arguments', () => {
+                    expect(clearCacheActionSpy.firstCall.calledWithExactly(['a', 'b'])).to.be.true;
+                });
+                it('should be executed after the action completed', () => {
+                    expect(clearCacheActionSpy.firstCall.calledAfter(completedSpy.firstCall)).to.be.true;
+                });
             });
 
-            it('should be called once', () => {
-                expect(cacheSpy.called).to.be.true;
-                expect(cacheSpy.callCount).to.equal(1);
-            });
-            it('should be called with correct arguments', () => {
-                expect(cacheSpy.firstCall.calledWithExactly(['a'])).to.be.true;
+            describe('cache.clear() method', () => {
+                it('should be called once', () => {
+                    expect(clearSpy.called).to.be.true;
+                    expect(clearSpy.callCount).to.equal(1);
+                });
+                it('should be called with correct arguments', () => {
+                    expect(clearSpy.firstCall.calledWithExactly(['a', 'b'])).to.be.true;
+                });
+                it('should be executed after the action completed', () => {
+                    expect(clearSpy.firstCall.calledAfter(completedSpy.firstCall)).to.be.true;
+                });
             });
         });
     });
@@ -94,32 +114,67 @@ describe('NOVA.CORE -> common actions;', () => {
             let operation: nova.Operation;
             let dispatcher: Dispatcher;
             let dispatchSpy: any;
+            let dispatchActionSpy: any;
+            let sendSpy: any;
+            let completedSpy: any;
 
             beforeEach(async () => {
                 dispatcher = new MockDispatcher();
-                dispatchSpy = sinon.spy(dispatch);
+                dispatchActionSpy = sinon.spy(dispatch);
+                completedSpy = sinon.stub();
 
                 async function action(this: Context, inputs: any) {
-                    this.defer(dispatchSpy, task1);
-                    this.defer(dispatchSpy, [task1]);
-                    this.defer(dispatchSpy, [task1, task2]);
+                    this.defer(dispatchActionSpy, task1);
+                    this.defer(dispatchActionSpy, [task1]);
+                    this.defer(dispatchActionSpy, [task1, task2]);
+                    completedSpy();
                 }
 
                 operation = new nova.Operation({...config, actions: [action]}, {dispatcher}, new MockLogger());
 
+                dispatchSpy = sinon.spy(operation, 'dispatch');
+                sendSpy = sinon.spy(dispatcher, 'send');
+
                 await operation.execute(undefined);
             });
 
-            afterEach(() => {
-                operation = dispatcher = dispatchSpy = undefined;
+            describe('dispatch action', () => {
+                it('should be called once', () => {
+                    expect(dispatchActionSpy.called).to.be.true;
+                    expect(dispatchActionSpy.callCount).to.equal(1);
+                });
+                it('should be called with correct arguments', () => {
+                    expect(dispatchActionSpy.firstCall.calledWithExactly([task1, task2])).to.be.true;
+                });
+                it('should be executed after the action completed', () => {
+                    expect(dispatchActionSpy.firstCall.calledAfter(completedSpy.firstCall)).to.be.true;
+                });
             });
 
-            it('should be called once', () => {
-                expect(dispatchSpy.called).to.be.true;
-                expect(dispatchSpy.callCount).to.equal(1);
+            describe('operation.dispatch() method', () => {
+                it('should be called once', () => {
+                    expect(dispatchSpy.called).to.be.true;
+                    expect(dispatchSpy.callCount).to.equal(1);
+                });
+                it('should be called with correct arguments', () => {
+                    expect(dispatchSpy.firstCall.calledWithExactly([task1, task2])).to.be.true;
+                });
+                it('should be executed after the action completed', () => {
+                    expect(dispatchSpy.firstCall.calledAfter(completedSpy.firstCall)).to.be.true;
+                });
             });
-            it('should be called with correct arguments', () => {
-                expect(dispatchSpy.firstCall.calledWithExactly([task1, task2])).to.be.true;
+
+            describe('dispatcher.send() method', () => {
+                it('should be called once', () => {
+                    expect(sendSpy.called).to.be.true;
+                    expect(sendSpy.callCount).to.equal(1);
+                });
+                it('should be called with correct arguments', () => {
+                    expect(sendSpy.firstCall.calledWithExactly([task1, task2])).to.be.true;
+                });
+                it('should be executed after the action completed', () => {
+                    expect(sendSpy.firstCall.calledAfter(completedSpy.firstCall)).to.be.true;
+                });
             });
         });
     });
@@ -150,33 +205,69 @@ describe('NOVA.CORE -> common actions;', () => {
         describe('action should work correctly in controller;', () => {
             let operation: nova.Operation;
             let notifier: MockNotifier;
+            let notifyActionSpy: any;
             let notifySpy: any;
+            let sendSpy: any;
+            let completedSpy: any;
 
             beforeEach(async () => {
                 notifier = new MockNotifier();
-                notifySpy = sinon.spy(notify);
+
+                notifyActionSpy = sinon.spy(notify);
+                sendSpy = sinon.spy(notifier, 'send');
+                completedSpy = sinon.stub();
 
                 async function action(this: Context, inputs: any) {
-                    this.defer(notifySpy, notice2);
-                    this.defer(notifySpy, undefined);
-                    this.defer(notifySpy, [notice1, notice2]);
+                    this.defer(notifyActionSpy, notice2);
+                    this.defer(notifyActionSpy, undefined);
+                    this.defer(notifyActionSpy, [notice1, notice2]);
+                    completedSpy();
                 }
 
                 operation = new nova.Operation({...config, actions: [action]}, {notifier}, new MockLogger());
 
+                notifySpy = sinon.spy(operation, 'notify');
+
                 await operation.execute(undefined);
             });
 
-            afterEach(() => {
-                operation = notifier = notifySpy = undefined;
+            describe('notify action', () => {
+                it('should be called once', () => {
+                    expect(notifyActionSpy.called).to.be.true;
+                    expect(notifyActionSpy.callCount).to.equal(1);
+                });
+                it('should be called with correct arguments', () => {
+                    expect(notifyActionSpy.firstCall.calledWithExactly([notice1, notice2])).to.be.true;
+                });
+                it('should be executed after the action completed', () => {
+                    expect(notifyActionSpy.firstCall.calledAfter(completedSpy.firstCall)).to.be.true;
+                });
             });
 
-            it('should be called once', () => {
-                expect(notifySpy.called).to.be.true;
-                expect(notifySpy.callCount).to.equal(1);
+            describe('operation.notify() method', () => {
+                it('should be called once', () => {
+                    expect(notifySpy.called).to.be.true;
+                    expect(notifySpy.callCount).to.equal(1);
+                });
+                it('should be called with correct arguments', () => {
+                    expect(notifySpy.firstCall.calledWithExactly([notice1, notice2])).to.be.true;
+                });
+                it('should be executed after the action completed', () => {
+                    expect(notifySpy.firstCall.calledAfter(completedSpy.firstCall)).to.be.true;
+                });
             });
-            it('should be called with correct arguments', () => {
-                expect(notifySpy.firstCall.calledWithExactly([notice1, notice2])).to.be.true;
+
+            describe('notifier.send() method', () => {
+                it('should be called once', () => {
+                    expect(sendSpy.called).to.be.true;
+                    expect(sendSpy.callCount).to.equal(1);
+                });
+                it('should be called with correct arguments', () => {
+                    expect(sendSpy.firstCall.calledWithExactly([notice1, notice2])).to.be.true;
+                });
+                it('should be executed after the action completed', () => {
+                    expect(sendSpy.firstCall.calledAfter(completedSpy.firstCall)).to.be.true;
+                });
             });
         });
     });
