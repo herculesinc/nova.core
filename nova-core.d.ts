@@ -122,14 +122,18 @@ declare module "@nova/core" {
         readonly text?  : string;
     }
 
+    export interface TraceDetails {
+        [key: string]: string;
+    }
+
     export interface Logger {        
         debug(message: string)  : void;
         info(message: string)   : void;
         warn(message: string)   : void;
         error(error: Error)     : void;
 
-        trace(source: TraceSource, command: string, duration: number, success: boolean): void;
-        trace(source: TraceSource, command: TraceCommand, duration: number, success: boolean): void;
+        trace(source: TraceSource, command: string, duration: number, success: boolean, details?: TraceDetails): void;
+        trace(source: TraceSource, command: TraceCommand, duration: number, success: boolean, details?: TraceDetails): void;
     }
 
     export const logger: Logger;
