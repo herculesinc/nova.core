@@ -29,16 +29,16 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
             expect(operation.timestamp).to.be.at.most(Date.now());
 
             expect(operation.log).to.equal(nova.logger);
-            expect(operation.dao).to.be.undefined;
-            expect(operation.cache).to.be.undefined;
+            expect(() => operation.dao).to.throw(nova.Exception, 'Cannot use dao service: dao not initialized');
+            expect(() => operation.cache).to.throw(nova.Exception, 'Cannot use cache service: cache not initialized');
         });
         it('should create new operation with custom logger', () => {
             const logger = new MockLogger();
-            const operation = new nova.Operation(config, null, logger);
+            const operation = new nova.Operation(config, undefined, logger);
 
             expect(operation.log).to.equal(logger);
-            expect(operation.dao).to.be.undefined;
-            expect(operation.cache).to.be.undefined;
+            expect(() => operation.dao).to.throw(nova.Exception, 'Cannot use dao service: dao not initialized');
+            expect(() => operation.cache).to.throw(nova.Exception, 'Cannot use cache service: cache not initialized');
         });
         it('should return an error if operation ID is missing', function () {
             expect(() => new nova.Operation({...config, id: ''})).to.throw(TypeError, 'Operation ID is missing or invalid');
@@ -50,7 +50,7 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
             expect(() => new nova.Operation({...config, origin: ''})).to.throw(TypeError, 'Operation origin is missing or invalid');
         });
         it('should return an error if operation actions are missing', function () {
-            expect(() => new nova.Operation({...config, actions: undefined})).to.throw(TypeError, 'Operation actions are missing or invalid');
+            expect(() => new nova.Operation({...config, actions: <any>undefined})).to.throw(TypeError, 'Operation actions are missing or invalid');
         });
         it('should return an error if operation action is not a function', function () {
             expect(() => new nova.Operation({...config, actions: ['string' as any]})).to.throw(TypeError, 'Operation action is not a function');
@@ -72,14 +72,14 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
         });
 
         it('should be done without exceptions', async () => {
-            operation = new nova.Operation(config, null, new MockLogger());
+            operation = new nova.Operation(config, undefined, new MockLogger());
 
             await operation.execute(undefined);
         });
 
         describe('without actions', () => {
             beforeEach(async () => {
-                operation = new nova.Operation(config, null, new MockLogger());
+                operation = new nova.Operation(config, undefined, new MockLogger());
 
                 executeSpy = sinon.spy(operation, 'execute');
 
@@ -105,7 +105,7 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
         describe('with action', () => {
             beforeEach(async () => {
                 action  = sinon.stub().returns(result);
-                operation = new nova.Operation({...config, actions: [action]}, null, new MockLogger());
+                operation = new nova.Operation({...config, actions: [action]}, undefined, new MockLogger());
 
                 executeSpy = sinon.spy(operation, 'execute');
 
@@ -136,7 +136,7 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
 
                 action  = sinon.spy(testAction);
 
-                operation = new nova.Operation({...config, actions: [action]}, null, new MockLogger());
+                operation = new nova.Operation({...config, actions: [action]}, undefined, new MockLogger());
             });
 
             it('should throw an exception', async () => {
@@ -156,7 +156,7 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
 
                 action  = sinon.spy(testAction);
 
-                operation = new nova.Operation({...config, actions: [action]}, null, new MockLogger());
+                operation = new nova.Operation({...config, actions: [action]}, undefined, new MockLogger());
             });
 
             it('should throw an exception', async () => {
@@ -181,7 +181,7 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
             firstAction  = sinon.stub().returns(fResult);
             secondAction = sinon.stub().returns(sResult);
 
-            operation = new nova.Operation({...config, actions:[firstAction, secondAction, firstAction]}, null, new MockLogger());
+            operation = new nova.Operation({...config, actions:[firstAction, secondAction, firstAction]}, undefined, new MockLogger());
 
             await operation.execute(inputs);
         });
@@ -407,7 +407,7 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
                     completedSpy();
                 }
 
-                operation = new nova.Operation({...config, actions:[action]}, null, new MockLogger());
+                operation = new nova.Operation({...config, actions:[action]}, undefined, new MockLogger());
 
                 await operation.execute(undefined);
             });
@@ -441,7 +441,7 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
                     this.defer(dAction, inputs);
                 }
 
-                operation = new nova.Operation({...config, actions:[action]}, null, new MockLogger());
+                operation = new nova.Operation({...config, actions:[action]}, undefined, new MockLogger());
 
                 try {
                     await operation.execute(undefined);
@@ -473,7 +473,7 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
                     this.defer(deferSpy, inputs);
                 }
 
-                operation = new nova.Operation({...config, actions:[sAction, fAction]}, null, new MockLogger());
+                operation = new nova.Operation({...config, actions:[sAction, fAction]}, undefined, new MockLogger());
 
                 await operation.execute(oInputs);
             });
@@ -510,7 +510,7 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
 
                 (dAction as any).merge = (i1: any, i2: any): object => ({...i1, ...i2});
 
-                operation = new nova.Operation({...config, actions:[fAction, sAction]}, null, new MockLogger());
+                operation = new nova.Operation({...config, actions:[fAction, sAction]}, undefined, new MockLogger());
 
                 await operation.execute({test: true});
             });

@@ -28,7 +28,7 @@ describe('NOVA.CORE -> common actions;', () => {
                 {i1: ['a'],      i2: ['a', 'b'], res: ['a', 'b']},
             ].forEach(({i1, i2, res}) => {
                 it(`for i1=${JSON.stringify(i1)} and i2=${JSON.stringify(i2)}`, () => {
-                    expect(clearCache.merge(i1, i2)).to.deep.equal(res);
+                    expect(clearCache.merge!(i1!, i2!)).to.deep.equal(res);
                 });
             });
         });
@@ -105,7 +105,7 @@ describe('NOVA.CORE -> common actions;', () => {
                 {i1: [task1, task2], i2: [task1, task2], res: [task1, task2]},
             ].forEach(({i1, i2, res}) => {
                 it(`for i1=${JSON.stringify(i1)} and i2=${JSON.stringify(i2)}`, () => {
-                    expect(dispatch.merge(i1, i2)).to.deep.equal(res);
+                    expect(dispatch.merge!(i1!, i2!)).to.deep.equal(res);
                 });
             });
         });
@@ -197,7 +197,7 @@ describe('NOVA.CORE -> common actions;', () => {
                 {i1: [notice1, notice2], i2: [notice1, notice2], res: [notice1, notice2]},
             ].forEach(({i1, i2, res}) => {
                 it(`for i1=${JSON.stringify(i1)} and i2=${JSON.stringify(i2)}`, () => {
-                    expect(notify.merge(i1, i2)).to.deep.equal(res);
+                    expect(notify.merge!(i1!, i2!)).to.deep.equal(res);
                 });
             });
         });

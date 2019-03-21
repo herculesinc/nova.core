@@ -19,7 +19,7 @@ export class MockNotice implements Notice {
         this.payload = payload;
     }
 
-    merge(notice: Notice): Notice {
+    merge(notice: Notice): Notice | undefined {
         return undefined;
     }
 

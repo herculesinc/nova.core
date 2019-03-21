@@ -73,12 +73,12 @@ export class Operation implements Context, Executable {
     }
 
     get dao(): Dao {
-        if (!this.dao) throw new Exception('Cannot use dao service: dao not initialized');
+        if (!this._dao) throw new Exception('Cannot use dao service: dao not initialized');
         return this._dao;
     }
 
     get cache(): Cache {
-        if (!this.dao) throw new Exception('Cannot use cache service: cache not bee initialized');
+        if (!this._cache) throw new Exception('Cannot use cache service: cache not initialized');
         return this._cache;
     }
 

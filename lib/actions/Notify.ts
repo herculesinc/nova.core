@@ -29,7 +29,7 @@ notify.merge = function(i1: Inputs, i2: Inputs): Inputs {
             let m = merge(merged[i], n2);
             if (m) {
                 merged[i] = m;
-                n2 = undefined;
+                n2 = undefined as any;
                 break;
             }
         }
@@ -49,7 +49,7 @@ function merge(n1: Notice, n2: Notice): Notice | undefined {
     if (!n1) return n2;
     if (!n2) return n1;
 
-    let merged: Notice;
+    let merged: Notice | undefined;
     if (n1.merge) {
         merged = n1.merge(n2);
     }

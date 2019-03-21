@@ -34,13 +34,13 @@ class Operation {
         return (this.state === 4 /* closed */);
     }
     get dao() {
-        if (!this.dao)
+        if (!this._dao)
             throw new Exception_1.Exception('Cannot use dao service: dao not initialized');
         return this._dao;
     }
     get cache() {
-        if (!this.dao)
-            throw new Exception_1.Exception('Cannot use cache service: cache not bee initialized');
+        if (!this._cache)
+            throw new Exception_1.Exception('Cannot use cache service: cache not initialized');
         return this._cache;
     }
     // PUBLIC METHODS

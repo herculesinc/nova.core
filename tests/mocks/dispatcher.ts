@@ -21,7 +21,7 @@ export class MockTask implements Task {
         this.payload = payload;
     }
 
-    merge(notice: Task): Task {
+    merge(notice: Task): Task | undefined {
         return undefined;
     }
 
