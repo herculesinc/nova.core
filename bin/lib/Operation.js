@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const Logger_1 = require("./Logger");
+const Exception_1 = require("./Exception");
 // CLASS DEFINITION
 // =================================================================================================
 class Operation {
@@ -16,10 +17,10 @@ class Operation {
         this.log = validateLogger(logger);
         if (services) {
             validateServices(services);
-            this.dao = services.dao;
-            this.cache = services.cache;
-            this.notifier = services.notifier;
-            this.dispatcher = services.dispatcher;
+            this._dao = services.dao;
+            this._cache = services.cache;
+            this._notifier = services.notifier;
+            this._dispatcher = services.dispatcher;
         }
         this.deferred = [];
         this.state = 1 /* initialized */;
@@ -32,25 +33,35 @@ class Operation {
     get isClosed() {
         return (this.state === 4 /* closed */);
     }
+    get dao() {
+        if (!this.dao)
+            throw new Exception_1.Exception('Cannot use dao service: dao not initialized');
+        return this._dao;
+    }
+    get cache() {
+        if (!this.dao)
+            throw new Exception_1.Exception('Cannot use cache service: cache not bee initialized');
+        return this._cache;
+    }
     // PUBLIC METHODS
     // --------------------------------------------------------------------------------------------
     async notify(noticeOrNotices) {
         if (!noticeOrNotices)
             throw new TypeError('Cannot register notice: notice is undefined');
-        if (!this.notifier)
+        if (!this._notifier)
             throw new Error('Cannot register notice: notifier not initialized');
         if (this.isClosed)
             throw new Error('Cannot register notice: operation already closed');
-        await this.notifier.send(noticeOrNotices);
+        await this._notifier.send(noticeOrNotices);
     }
     async dispatch(taskOrTasks) {
         if (!taskOrTasks)
             throw new TypeError('Cannot dispatch task: task is undefined');
-        if (!this.dispatcher)
+        if (!this._dispatcher)
             throw new Error('Cannot dispatch task: dispatcher not initialized');
         if (this.isClosed)
             throw new Error('Cannot dispatch task: operation already closed');
-        await this.dispatcher.send(taskOrTasks);
+        await this._dispatcher.send(taskOrTasks);
     }
     run(action, inputs) {
         return action.call(this, inputs);
@@ -94,16 +105,16 @@ class Operation {
                 this.log.debug(`Executed ${action.name} action in ${Date.now() - start} ms`);
             }
             // try to commit changes to the database
-            if (this.dao) {
-                if (!this.dao.isActive)
+            if (this._dao) {
+                if (!this._dao.isActive)
                     throw new Error('Dao was closed outside of execution cycle');
-                await this.dao.close('commit');
+                await this._dao.close('commit');
             }
         }
         catch (error) {
             // if the dao is still active, try to roll back
-            if (this.dao && this.dao.isActive) {
-                await this.dao.close('rollback');
+            if (this._dao && this._dao.isActive) {
+                await this._dao.close('rollback');
             }
             // mark operation as closed and re-throw the error
             this.state = 4 /* closed */;

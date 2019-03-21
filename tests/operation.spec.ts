@@ -345,9 +345,6 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
                 await operation.execute(undefined);
             });
 
-            it('operation should have notifier service', () => {
-                expect((operation as any).notifier).to.equal(notifier);
-            });
             it('notifier send() method should be executed once', () => {
                 expect(sendSpy.called).to.be.true;
                 expect(sendSpy.callCount).to.equal(1);
@@ -383,9 +380,6 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
                 await operation.execute(undefined);
             });
 
-            it('operation should have dispatcher service', () => {
-                expect((operation as any).dispatcher).to.equal(dispatcher);
-            });
             it('dispatcher send() method should be executed once', () => {
                 expect(sendSpy.called).to.be.true;
                 expect(sendSpy.callCount).to.equal(1);
@@ -435,7 +429,7 @@ describe('NOVA.CORE -> \'Operation\' tests;', () => {
         });
 
         describe('Executing deferred actions inside other deferred actions', () => {
-            let error;
+            let error: any;
 
             beforeEach(async () => {
                 deferSpy = sinon.stub();

@@ -14,8 +14,8 @@ declare module "@nova/core" {
         readonly timestamp  : number;
 
         readonly log        : Logger;
-        readonly dao?       : Dao;
-        readonly cache?     : Cache;
+        readonly dao        : Dao;
+        readonly cache      : Cache;
 
         readonly isSealed   : boolean;
         readonly isClosed   : boolean;

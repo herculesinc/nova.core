@@ -4,7 +4,6 @@
         "module": "commonjs",
         "strict": true,
         "strictNullChecks": false,
-        "noImplicitAny": false,
         "noEmitOnError": true,
         "sourceMap": true,
         "rootDir": ".",
