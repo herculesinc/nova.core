@@ -1,6 +1,6 @@
 {
   "name": "@nova/core",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Core interfaces and classes for Nova framework",
   "keywords": [
     "nova",
@@ -29,7 +29,7 @@
     "@types/sinon": "7.0.x",
     "chai": "4.2.x",
     "chai-as-promised": "7.1.x",
-    "del": "3.0.x",
+    "del": "4.0.x",
     "gulp": "4.0.x",
     "gulp-mocha": "6.0.x",
     "mocha": "6.0.x",
