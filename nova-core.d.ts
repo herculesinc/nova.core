@@ -127,8 +127,6 @@ declare module "@nova/core" {
     }
 
     export interface Logger {
-        
-        readonly operationId?   : string;
 
         debug(message: string)  : void;
         info(message: string)   : void;
