@@ -2,20 +2,20 @@ declare module "@nova/core" {
 
     // OPERATION
     // --------------------------------------------------------------------------------------------
-    export interface Operation extends Executable, Context {
-        new(config: OperationConfig, services?: OperationServices, logger?: Logger): Operation;
+    export interface Operation<L extends Logger = Logger, D extends Dao = Dao, C extends Cache = Cache> extends Executable, Context<L,D,C> {
+        new(config: OperationConfig, services?: OperationServices<D,C>, logger?: L): Operation;
     }
     export const Operation: Operation;
 
-    export interface Context {
+    export interface Context<L extends Logger = Logger, D extends Dao = Dao, C extends Cache = Cache> {
         readonly id         : string;
         readonly name       : string;
         readonly origin     : string;
         readonly timestamp  : number;
 
-        readonly log        : Logger;
-        readonly dao        : Dao;
-        readonly cache      : Cache;
+        readonly log        : L;
+        readonly dao        : D;
+        readonly cache      : C;
 
         readonly isSealed   : boolean;
         readonly isClosed   : boolean;
@@ -41,9 +41,9 @@ declare module "@nova/core" {
         readonly actions    : Action[];
     }
 
-    export interface OperationServices {
-        readonly dao?       : Dao;
-        readonly cache?     : Cache;
+    export interface OperationServices<D extends Dao = Dao, C extends Cache = Cache> {
+        readonly dao?       : D;
+        readonly cache?     : C;
         readonly notifier?  : Notifier;
         readonly dispatcher?: Dispatcher;
     }
@@ -169,7 +169,7 @@ declare module "@nova/core" {
         toJSON(): any;
     }
 
-    // EXCEPTION
+    // COMMON ENUMS
     // --------------------------------------------------------------------------------------------
     export const enum HttpStatusCode {
         OK                  = 200,
